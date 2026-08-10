@@ -70,7 +70,7 @@ export function OrganizationMembers() {
           </p>
         </div>
 
-        {canManage && <AddMemberDialog />}
+        {canManage && <AddMemberDialog currentRole={currentRole} />}
       </div>
 
       {/* Role update error */}
@@ -122,15 +122,13 @@ export function OrganizationMembers() {
                           onChange={(event) => {
                             const newRole = event.target.value as OrganizationRole;
 
-                            if (newRole === member.role) {
-                              return;
-                            }
-
                             if (!canAssignRole(currentRole, member.role, newRole)) {
                               return;
                             }
 
-                            updateRoleMutation.reset();
+                            if (newRole === member.role) {
+                              return;
+                            }
 
                             updateRoleMutation.mutate({
                               memberId: member.id,

@@ -63,17 +63,18 @@ export function canRemoveMember(
   if (targetRole === "OWNER") {
     return false;
   }
+
   if (currentUserId && currentUserId === targetUserId) {
     return false;
   }
+
   if (currentRole === "OWNER") {
     return true;
   }
-  if (currentRole === "ADMIN" && targetRole === "ADMIN") {
-    return false;
-  }
+
   if (currentRole === "ADMIN") {
-    return true;
+    return targetRole !== "ADMIN";
   }
+
   return false;
 }

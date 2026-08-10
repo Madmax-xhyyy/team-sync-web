@@ -1,9 +1,11 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet } from "react-router-dom";
 
 import { logout } from "@/features/auth/api/auth.api";
 import { useAuthStore } from "@/stores/auth.store";
 
 export function AppLayout() {
+  const queryClient = useQueryClient();
   const clearAuth = useAuthStore((state) => state.clearAuth);
 
   const handleLogout = async () => {
@@ -12,6 +14,7 @@ export function AppLayout() {
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
+      queryClient.clear();
       clearAuth();
     }
   };

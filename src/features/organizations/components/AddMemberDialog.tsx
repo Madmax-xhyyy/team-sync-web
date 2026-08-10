@@ -17,10 +17,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+import type { OrganizationRole } from "../types/member.types";
+
 import { addMemberSchema, type AddMemberFormData } from "../schemas/member.schema";
+
 import { addOrganizationMember } from "../api/members.api";
 
-export function AddMemberDialog() {
+interface AddMemberDialogProps {
+  currentRole: OrganizationRole | undefined;
+}
+
+export function AddMemberDialog({ currentRole }: AddMemberDialogProps) {
   const [open, setOpen] = useState(false);
 
   const { organizationId = "" } = useParams();
@@ -65,6 +72,10 @@ export function AddMemberDialog() {
     }
   };
 
+  if (currentRole !== "OWNER" && currentRole !== "ADMIN") {
+    return null;
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
@@ -107,7 +118,9 @@ export function AddMemberDialog() {
               disabled={addMemberMutation.isPending}
             >
               <option value="MEMBER">Member</option>
-              <option value="ADMIN">Admin</option>
+
+              {currentRole === "OWNER" && <option value="ADMIN">Admin</option>}
+
               <option value="GUEST">Guest</option>
             </select>
 
@@ -127,7 +140,7 @@ export function AddMemberDialog() {
               type="button"
               onClick={() => handleOpenChange(false)}
               disabled={addMemberMutation.isPending}
-              className="rounded-md border px-4 py-2 text-sm"
+              className="rounded-md border px-4 py-2 text-sm disabled:opacity-50"
             >
               Cancel
             </button>
