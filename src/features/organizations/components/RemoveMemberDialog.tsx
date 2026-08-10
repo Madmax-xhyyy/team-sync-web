@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-import { useRemoveOrganizationMember } from "@/hooks/useRemoveOrganizationMember";
+import { useRemoveOrganizationMember } from "@/features/organizations/hooks/useRemoveOrganizationMember";
 
 interface RemoveMemberDialogProps {
   organizationId: string;

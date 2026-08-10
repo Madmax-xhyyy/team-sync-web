@@ -10,7 +10,7 @@ export function useRemoveOrganizationMember(organizationId: string) {
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["organization", organizationId, "members"],
+        queryKey: ["organization-members", organizationId],
       });
     },
   });

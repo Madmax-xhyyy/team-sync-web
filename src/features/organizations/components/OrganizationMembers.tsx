@@ -1,37 +1,62 @@
-import { useParams } from "react-router-dom";
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 
-import { useOrganizationMembers } from "@/hooks/useOrganizationMembers";
-import { useUpdateMemberRole } from "@/hooks/useUpdateMemberRole";
+import { Button } from "@/components/ui/button";
 
-import type { OrganizationRole, OrganizationMember } from "../types/member.types";
+import { useCurrentUser } from "@/features/user/hooks/useCurrentUser";
+import { useOrganizationMembers } from "@/features/organizations/hooks/useOrganizationMembers";
+import { useUpdateMemberRole } from "@/features/organizations/hooks/useUpdateMemberRole";
+
+import type { OrganizationMember, OrganizationRole } from "../types/member.types";
+
+import {
+  canAssignRole,
+  canManageMembers,
+  canRemoveMember,
+  canUpdateMemberRole,
+  getCurrentOrganizationMember,
+} from "../utils/organization-permissions";
 
 import { AddMemberDialog } from "./AddMemberDialog";
 import { RemoveMemberDialog } from "./RemoveMemberDialog";
-import { useRemoveOrganizationMember } from "@/hooks/useRemoveOrganizationMember";
 
 export function OrganizationMembers() {
   const { organizationId = "" } = useParams();
 
-  const { data: members = [], isLoading, isError } = useOrganizationMembers(organizationId);
-
   const [memberToRemove, setMemberToRemove] = useState<OrganizationMember | null>(null);
+
+  const {
+    data: members = [],
+    isLoading: isMembersLoading,
+    isError: isMembersError,
+  } = useOrganizationMembers(organizationId);
+
+  const {
+    data: currentUser,
+    isLoading: isCurrentUserLoading,
+    isError: isCurrentUserError,
+  } = useCurrentUser();
 
   const updateRoleMutation = useUpdateMemberRole(organizationId);
 
-  const removeMemberMutation = useRemoveOrganizationMember(organizationId);
-
-  if (isLoading) {
+  if (isMembersLoading || isCurrentUserLoading) {
     return <div>Loading members...</div>;
   }
 
-  if (isError) {
+  if (isMembersError || isCurrentUserError) {
     return <div>Failed to load members.</div>;
   }
 
+  const currentMember = getCurrentOrganizationMember(members, currentUser?.data.id);
+
+  const currentRole = currentMember?.role;
+
+  const canManage = canManageMembers(currentRole);
+
   return (
     <section className="mt-8 rounded-xl border">
+      {/* Header */}
       <div className="flex items-center justify-between gap-4 border-b p-6">
         <div>
           <h2 className="font-semibold">Members</h2>
@@ -41,59 +66,92 @@ export function OrganizationMembers() {
           </p>
         </div>
 
-        <AddMemberDialog />
+        {canManage && <AddMemberDialog />}
       </div>
 
+      {/* Members */}
       <div className="divide-y">
         {members.length === 0 ? (
           <div className="p-6 text-sm text-muted-foreground">No members found.</div>
         ) : (
-          members.map((member) => (
-            <div key={member.id} className="flex items-center justify-between gap-4 p-6">
-              <div>
-                <p className="font-medium">
-                  {member.firstName} {member.lastName}
-                </p>
+          members.map((member) => {
+            const canEditRole = canUpdateMemberRole(currentRole, member.role);
 
-                <p className="text-sm text-muted-foreground">{member.email}</p>
+            const canRemove = canRemoveMember(
+              currentRole,
+              member.role,
+              currentUser?.data.id,
+              member.userId,
+            );
+
+            return (
+              <div key={member.id} className="flex items-center justify-between gap-4 p-6">
+                {/* Member information */}
+                <div>
+                  <p className="font-medium">
+                    {member.firstName} {member.lastName}
+                  </p>
+
+                  <p className="text-sm text-muted-foreground">{member.email}</p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-3">
+                  {/* Owner */}
+                  {member.role === "OWNER" ? (
+                    <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium">
+                      OWNER
+                    </span>
+                  ) : (
+                    <>
+                      {/* Role selector */}
+                      {canEditRole && (
+                        <select
+                          value={member.role}
+                          disabled={updateRoleMutation.isPending}
+                          onChange={(event) => {
+                            const newRole = event.target.value as OrganizationRole;
+
+                            if (!canAssignRole(currentRole, member.role, newRole)) {
+                              return;
+                            }
+
+                            updateRoleMutation.mutate({
+                              memberId: member.id,
+                              role: newRole,
+                            });
+                          }}
+                          className="rounded-md border bg-background px-3 py-1.5 text-sm"
+                        >
+                          <option value="MEMBER">Member</option>
+
+                          {currentRole === "OWNER" && <option value="ADMIN">Admin</option>}
+                        </select>
+                      )}
+
+                      {/* Remove */}
+                      {canRemove && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setMemberToRemove(member)}
+                          aria-label={`Remove ${member.firstName} ${member.lastName}`}
+                          title={`Remove ${member.firstName} ${member.lastName}`}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
-
-              <div className="flex items-center gap-3">
-                {member.role === "OWNER" ? (
-                  <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium">OWNER</span>
-                ) : (
-                  <>
-                    <select
-                      value={member.role}
-                      disabled={updateRoleMutation.isPending}
-                      onChange={(event) => {
-                        updateRoleMutation.mutate({
-                          memberId: member.id,
-                          role: event.target.value as OrganizationRole,
-                        });
-                      }}
-                      className="rounded-md border bg-background px-3 py-1.5 text-sm"
-                    >
-                      <option value="MEMBER">Member</option>
-                      <option value="ADMIN">Admin</option>
-                    </select>
-
-                    <button
-                      type="button"
-                      onClick={() => setMemberToRemove(member)}
-                      className="rounded-md border p-2 text-destructive hover:bg-destructive/10"
-                      aria-label={`Remove ${member.firstName} ${member.lastName}`}
-                      title={`Remove ${member.firstName} ${member.lastName}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
+
+      {/* Remove confirmation */}
       {memberToRemove && (
         <RemoveMemberDialog
           organizationId={organizationId}

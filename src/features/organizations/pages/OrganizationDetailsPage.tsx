@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 
 import { OrganizationHeader } from "../components/OrganizationHeader";
 import { OrganizationStats } from "../components/OrganizationStats";
-import { useOrganization } from "@/hooks/useOrganization";
+import { useOrganization } from "@/features/organizations/hooks/useOrganization";
 import { OrganizationMembers } from "../components/OrganizationMembers";
 
 export function OrganizationDetailsPage() {
