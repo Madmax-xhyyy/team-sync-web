@@ -3,6 +3,8 @@ import { AppLayout } from "@/app/layouts/AppLayout";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
+import { OrganizationsPage } from "@/features/organizations/pages/OrganizationsPage";
+import { OrganizationDetailsPage } from "@/features/organizations/pages/OrganizationDetailsPage";
 
 export const routes: RouteObject[] = [
   {
@@ -32,7 +34,11 @@ export const routes: RouteObject[] = [
           },
           {
             path: "/organizations",
-            element: <div>Organizations</div>,
+            element: <OrganizationsPage />,
+          },
+          {
+            path: "/organizations/:organizationId",
+            element: <OrganizationDetailsPage />,
           },
           {
             path: "/projects",

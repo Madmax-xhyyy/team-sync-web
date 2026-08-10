@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 import { login } from "@/features/auth/api/auth.api";
@@ -6,6 +7,8 @@ import { loginSchema, type LoginFormData } from "@/features/auth/schemas/auth.sc
 import { useAuthStore } from "@/stores/auth.store";
 
 export function LoginPage() {
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -25,6 +28,7 @@ export function LoginPage() {
       const response = await login(data);
 
       setAccessToken(response.data.accessToken);
+      navigate("/dashboard", { replace: true });
 
       console.log("Login successful.");
     } catch (error) {
