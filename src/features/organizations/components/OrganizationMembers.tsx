@@ -4,6 +4,8 @@ import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
+import { getApiErrorMessage } from "@/lib/api-error";
+
 import { useCurrentUser } from "@/features/user/hooks/useCurrentUser";
 import { useOrganizationMembers } from "@/features/organizations/hooks/useOrganizationMembers";
 import { useUpdateMemberRole } from "@/features/organizations/hooks/useUpdateMemberRole";
@@ -48,18 +50,20 @@ export function OrganizationMembers() {
     return <div>Failed to load members.</div>;
   }
 
-  const currentMember = getCurrentOrganizationMember(members, currentUser?.data.id);
+  const currentUserId = currentUser?.data.id;
+
+  const currentMember = getCurrentOrganizationMember(members, currentUserId);
 
   const currentRole = currentMember?.role;
 
   const canManage = canManageMembers(currentRole);
 
   return (
-    <section className="mt-8 rounded-xl border">
+    <section className="rounded-xl border">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 border-b p-6">
+      <div className="flex items-center justify-between border-b p-6">
         <div>
-          <h2 className="font-semibold">Members</h2>
+          <h2 className="text-lg font-semibold">Members</h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
             People who belong to this organization.
@@ -68,6 +72,13 @@ export function OrganizationMembers() {
 
         {canManage && <AddMemberDialog />}
       </div>
+
+      {/* Role update error */}
+      {updateRoleMutation.isError && (
+        <div className="border-b px-6 py-3 text-sm text-destructive">
+          {getApiErrorMessage(updateRoleMutation.error, "Failed to update member role.")}
+        </div>
+      )}
 
       {/* Members */}
       <div className="divide-y">
@@ -80,24 +91,23 @@ export function OrganizationMembers() {
             const canRemove = canRemoveMember(
               currentRole,
               member.role,
-              currentUser?.data.id,
+              currentUserId,
               member.userId,
             );
 
             return (
               <div key={member.id} className="flex items-center justify-between gap-4 p-6">
                 {/* Member information */}
-                <div>
+                <div className="min-w-0">
                   <p className="font-medium">
                     {member.firstName} {member.lastName}
                   </p>
 
-                  <p className="text-sm text-muted-foreground">{member.email}</p>
+                  <p className="truncate text-sm text-muted-foreground">{member.email}</p>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-3">
-                  {/* Owner */}
+                <div className="flex shrink-0 items-center gap-3">
                   {member.role === "OWNER" ? (
                     <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium">
                       OWNER
@@ -112,21 +122,37 @@ export function OrganizationMembers() {
                           onChange={(event) => {
                             const newRole = event.target.value as OrganizationRole;
 
+                            if (newRole === member.role) {
+                              return;
+                            }
+
                             if (!canAssignRole(currentRole, member.role, newRole)) {
                               return;
                             }
+
+                            updateRoleMutation.reset();
 
                             updateRoleMutation.mutate({
                               memberId: member.id,
                               role: newRole,
                             });
                           }}
-                          className="rounded-md border bg-background px-3 py-1.5 text-sm"
+                          className="rounded-md border bg-background px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label={`Change role for ${member.firstName} ${member.lastName}`}
                         >
                           <option value="MEMBER">Member</option>
 
                           {currentRole === "OWNER" && <option value="ADMIN">Admin</option>}
+
+                          <option value="GUEST">Guest</option>
                         </select>
+                      )}
+
+                      {/* Read-only role */}
+                      {!canEditRole && (
+                        <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium">
+                          {member.role}
+                        </span>
                       )}
 
                       {/* Remove */}

@@ -108,6 +108,7 @@ export function AddMemberDialog() {
             >
               <option value="MEMBER">Member</option>
               <option value="ADMIN">Admin</option>
+              <option value="GUEST">Guest</option>
             </select>
 
             {form.formState.errors.role && (
