@@ -28,3 +28,18 @@ export async function getOrganizationById(id: string): Promise<Organization> {
 
   return response.data.data;
 }
+
+export interface UpdateOrganizationRequest {
+  name: string;
+  description?: string;
+}
+
+export async function updateOrganization(organizationId: string, data: UpdateOrganizationRequest) {
+  const response = await api.put(`/organizations/${organizationId}`, data);
+
+  return response.data.data;
+}
+
+export async function deleteOrganization(organizationId: string): Promise<void> {
+  await api.delete(`/organizations/${organizationId}`);
+}
