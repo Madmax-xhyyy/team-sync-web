@@ -1,7 +1,7 @@
 export interface Organization {
   id: string;
   name: string;
-  description: string | null;
+  description?: string;
   ownerId: string;
   createdAt: string;
   updatedAt: string;

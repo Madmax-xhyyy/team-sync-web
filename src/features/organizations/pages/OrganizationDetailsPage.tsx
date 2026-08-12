@@ -4,6 +4,7 @@ import { OrganizationHeader } from "../components/OrganizationHeader";
 import { OrganizationStats } from "../components/OrganizationStats";
 import { useOrganization } from "@/features/organizations/hooks/useOrganization";
 import { OrganizationMembers } from "../components/OrganizationMembers";
+import { ProjectList } from "@/features/project/components/ProjectLists";
 
 export function OrganizationDetailsPage() {
   const { organizationId = "" } = useParams();
@@ -23,6 +24,8 @@ export function OrganizationDetailsPage() {
       <OrganizationHeader organization={organization} />
 
       <OrganizationStats />
+
+      <ProjectList />
 
       <OrganizationMembers />
 

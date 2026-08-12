@@ -5,6 +5,7 @@ import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
 import { OrganizationsPage } from "@/features/organizations/pages/OrganizationsPage";
 import { OrganizationDetailsPage } from "@/features/organizations/pages/OrganizationDetailsPage";
+import { ProjectDetailsPage } from "@/features/project/pages/ProjectDetailsPage";
 
 export const routes: RouteObject[] = [
   {
@@ -41,8 +42,8 @@ export const routes: RouteObject[] = [
             element: <OrganizationDetailsPage />,
           },
           {
-            path: "/projects",
-            element: <div>Projects</div>,
+            path: "organizations/:organizationId/projects/:projectId",
+            element: <ProjectDetailsPage />,
           },
           {
             path: "/tasks",
