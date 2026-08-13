@@ -55,3 +55,33 @@ export async function deleteTask(
     `/organizations/${organizationId}/projects/${projectId}/columns/${columnId}/tasks/${taskId}`,
   );
 }
+
+export async function assignTask(
+  organizationId: string,
+  projectId: string,
+  columnId: string,
+  taskId: string,
+  userId: string,
+): Promise<Task> {
+  const response = await api.patch(
+    `/organizations/${organizationId}/projects/${projectId}/columns/${columnId}/tasks/${taskId}/assignee`,
+    {
+      userId,
+    },
+  );
+
+  return response.data.data;
+}
+
+export async function unassignTask(
+  organizationId: string,
+  projectId: string,
+  columnId: string,
+  taskId: string,
+): Promise<Task> {
+  const response = await api.delete(
+    `/organizations/${organizationId}/projects/${projectId}/columns/${columnId}/tasks/${taskId}/assignee`,
+  );
+
+  return response.data.data;
+}
