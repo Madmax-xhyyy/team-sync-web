@@ -4,6 +4,8 @@ import { ArrowLeft } from "lucide-react";
 
 import { useProject } from "@/features/project/hooks/useProject";
 
+import { TaskBoard } from "@/features/tasks/components/TaskBoard";
+
 export function ProjectDetailsPage() {
   const { organizationId = "", projectId = "" } = useParams();
 
@@ -59,14 +61,14 @@ export function ProjectDetailsPage() {
         )}
       </section>
 
-      <section className="rounded-xl border">
-        <div className="border-b p-6">
+      <section className="rounded-xl border p-6">
+        <div className="mb-6">
           <h2 className="font-semibold">Task Board</h2>
 
           <p className="mt-1 text-sm text-muted-foreground">Manage tasks for this project.</p>
         </div>
 
-        <div className="p-6 text-sm text-muted-foreground">Task board will be added next.</div>
+        <TaskBoard />
       </section>
     </div>
   );
