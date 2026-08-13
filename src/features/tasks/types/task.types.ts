@@ -1,3 +1,7 @@
+export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+
+export type TaskType = "TASK" | "BUG" | "FEATURE";
+
 export interface Task {
   id: string;
   projectId: string;
@@ -6,14 +10,17 @@ export interface Task {
   title: string;
   description: string | null;
 
-  priority: string;
-  type: string;
+  priority: TaskPriority;
+  type: TaskType;
 
   assigneeId: string | null;
   reporterId: string;
 
   dueDate: string | null;
   position: number;
+
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TaskColumn {
@@ -26,6 +33,6 @@ export interface TaskColumn {
 export interface CreateTaskRequest {
   title: string;
   description?: string;
-  priority: string;
-  type: string;
+  priority: TaskPriority;
+  type: TaskType;
 }
