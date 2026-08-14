@@ -39,13 +39,6 @@ export function TaskColumn({
 }: TaskColumnProps) {
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
 
-  /*
-   * Register the column as a droppable target.
-   *
-   * TaskBoard expects IDs in this format:
-   *
-   * column:<columnId>
-   */
   const { ref: columnRef, isDropTarget } = useDroppable({
     id: `column:${column.id}`,
   });
@@ -53,7 +46,6 @@ export function TaskColumn({
   return (
     <>
       <div
-        ref={columnRef}
         className={[
           "min-h-64 rounded-xl border bg-muted/30 transition-colors",
           isDropTarget ? "border-primary bg-primary/10" : "",
@@ -79,12 +71,11 @@ export function TaskColumn({
           </Button>
         </div>
 
-        {/* Tasks */}
-        <div className="min-h-32 space-y-3 p-4">
+        {/* Sortable task area */}
+        <div ref={columnRef} className="min-h-32 space-y-3 p-4">
           {isLoading && (
             <>
               <div className="h-20 animate-pulse rounded-lg bg-muted" />
-
               <div className="h-20 animate-pulse rounded-lg bg-muted" />
             </>
           )}
@@ -100,10 +91,12 @@ export function TaskColumn({
           )}
 
           {!isLoading &&
-            tasks.map((task) => (
+            tasks.map((task, index) => (
               <TaskCard
                 key={task.id}
                 task={task}
+                index={index}
+                columnId={column.id}
                 onEdit={() => onEditTask(task)}
                 onDelete={() => onDeleteTask(task)}
                 onAssign={() => onAssignTask(task)}

@@ -6,7 +6,7 @@ import type { Task, TaskColumn } from "../types/task.types";
 export function useBoardTasks(organizationId: string, projectId: string, columns: TaskColumn[]) {
   const queries = useQueries({
     queries: columns.map((column) => ({
-      queryKey: ["tasks", organizationId, projectId, column.id],
+      queryKey: ["board-tasks", organizationId, projectId, column.id],
 
       queryFn: () => getTasks(organizationId, projectId, column.id),
 

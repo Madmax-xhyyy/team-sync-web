@@ -1,4 +1,4 @@
-import { useDraggable } from "@dnd-kit/react";
+import { useSortable } from "@dnd-kit/react/sortable";
 import { Pencil, Trash2, UserPlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -7,21 +7,20 @@ import type { Task } from "../types/task.types";
 
 interface TaskCardProps {
   task: Task;
+  index: number;
+  columnId: string;
   onEdit: () => void;
   onDelete: () => void;
   onAssign: () => void;
 }
 
-export function TaskCard({ task, onEdit, onDelete, onAssign }: TaskCardProps) {
-  /*
-   * Register this task as draggable.
-   *
-   * TaskBoard expects:
-   *
-   * task:<taskId>
-   */
-  const { ref, isDragging } = useDraggable({
-    id: `task:${task.id}`,
+export function TaskCard({ task, index, columnId, onEdit, onDelete, onAssign }: TaskCardProps) {
+  const { ref, isDragging } = useSortable({
+    id: task.id,
+    index,
+    group: columnId,
+    type: "task",
+    accept: "task",
   });
 
   return (
@@ -34,7 +33,6 @@ export function TaskCard({ task, onEdit, onDelete, onAssign }: TaskCardProps) {
         isDragging ? "opacity-50" : "",
       ].join(" ")}
     >
-      {/* Task header */}
       <div className="flex items-start justify-between gap-3">
         <h4 className="font-medium">{task.title}</h4>
 
@@ -74,12 +72,10 @@ export function TaskCard({ task, onEdit, onDelete, onAssign }: TaskCardProps) {
         </div>
       </div>
 
-      {/* Description */}
       {task.description && (
         <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{task.description}</p>
       )}
 
-      {/* Metadata */}
       <div className="mt-3 flex items-center justify-between">
         <span className="rounded-md bg-muted px-2 py-1 text-xs">{task.priority}</span>
 

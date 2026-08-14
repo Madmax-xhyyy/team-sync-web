@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { DragDropProvider, type DragEndEvent } from "@dnd-kit/react";
+import { isSortable } from "@dnd-kit/react/sortable";
 
 import { useTaskColumns } from "../hooks/useTaskColumns";
 import { useBoardTasks } from "../hooks/useBoardTasks";
@@ -23,20 +24,10 @@ export function TaskBoard() {
   } = useTaskColumns(organizationId, projectId);
 
   const {
-    tasksByColumn: serverTasks,
+    tasksByColumn,
     isLoading: isTasksLoading,
     isError: isTasksError,
   } = useBoardTasks(organizationId, projectId, columns);
-
-  /*
-   * Local board state is only used during
-   * optimistic drag-and-drop operations.
-   *
-   * null means we are using the server state.
-   */
-  const [localTasksByColumn, setLocalTasksByColumn] = useState<Record<string, Task[]> | null>(null);
-
-  const tasksByColumn = localTasksByColumn ?? serverTasks;
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [deleteTask, setDeleteTask] = useState<Task | null>(null);
@@ -45,266 +36,108 @@ export function TaskBoard() {
   const moveTaskMutation = useMoveTask(organizationId, projectId);
 
   /*
-   * Flatten all tasks.
+   * Flatten all tasks so we can find
+   * a task by its ID.
    */
   const allTasks = useMemo(() => Object.values(tasksByColumn).flat(), [tasksByColumn]);
 
-  /*
-   * Find a task by its real ID.
-   */
   const findTask = (taskId: string) => {
     return allTasks.find((task) => task.id === taskId);
   };
 
   /*
-   * Find which column contains a task.
-   */
-  const findColumnForTask = (taskId: string) => {
-    for (const [columnId, tasks] of Object.entries(tasksByColumn)) {
-      if (tasks.some((task) => task.id === taskId)) {
-        return columnId;
-      }
-    }
-
-    return undefined;
-  };
-
-  /*
-   * Resolve the target column from dnd-kit.
-   *
-   * Column target:
-   * column:123
-   *
-   * Task target:
-   * task:456
-   */
-  const resolveTargetColumn = (targetId: string) => {
-    if (targetId.startsWith("column:")) {
-      return targetId.replace("column:", "");
-    }
-
-    if (targetId.startsWith("task:")) {
-      const targetTaskId = targetId.replace("task:", "");
-
-      return findColumnForTask(targetTaskId);
-    }
-
-    return undefined;
-  };
-
-  /*
-   * Optimistically move a task locally.
-   */
-  const moveTaskLocally = (taskId: string, targetColumnId: string, targetTaskId?: string) => {
-    setLocalTasksByColumn((current) => {
-      const sourceState = current ?? serverTasks;
-
-      const sourceColumnId = findColumnForTask(taskId);
-
-      if (!sourceColumnId) {
-        return sourceState;
-      }
-
-      const sourceTasks = [...(sourceState[sourceColumnId] ?? [])];
-
-      const sourceIndex = sourceTasks.findIndex((task) => task.id === taskId);
-
-      if (sourceIndex === -1) {
-        return sourceState;
-      }
-
-      const [movedTask] = sourceTasks.splice(sourceIndex, 1);
-
-      if (!movedTask) {
-        return sourceState;
-      }
-
-      const updatedTask: Task = {
-        ...movedTask,
-        columnId: targetColumnId,
-      };
-
-      const targetTasks =
-        sourceColumnId === targetColumnId ? sourceTasks : [...(sourceState[targetColumnId] ?? [])];
-
-      /*
-       * Find insertion index.
-       */
-      let targetIndex = targetTasks.length;
-
-      if (targetTaskId) {
-        const foundIndex = targetTasks.findIndex((task) => task.id === targetTaskId);
-
-        if (foundIndex !== -1) {
-          targetIndex = foundIndex;
-        }
-      }
-
-      targetTasks.splice(targetIndex, 0, updatedTask);
-
-      /*
-       * Normalize source positions.
-       */
-      const normalizedSourceTasks = sourceTasks.map((task, index) => ({
-        ...task,
-        position: index,
-      }));
-
-      /*
-       * Normalize target positions.
-       */
-      const normalizedTargetTasks = targetTasks.map((task, index) => ({
-        ...task,
-        position: index,
-        columnId: targetColumnId,
-      }));
-
-      /*
-       * Moving within the same column.
-       */
-      if (sourceColumnId === targetColumnId) {
-        return {
-          ...sourceState,
-          [sourceColumnId]: normalizedTargetTasks,
-        };
-      }
-
-      /*
-       * Moving between columns.
-       */
-      return {
-        ...sourceState,
-        [sourceColumnId]: normalizedSourceTasks,
-        [targetColumnId]: normalizedTargetTasks,
-      };
-    });
-  };
-
-  /*
    * Handle completed drag operation.
+   *
+   * useSortable provides:
+   *
+   * initialIndex  -> original position
+   * index         -> final position
+   * initialGroup  -> original column
+   * group         -> final column
    */
   const handleDragEnd = (event: DragEndEvent) => {
     if (event.canceled) {
-      setLocalTasksByColumn(null);
       return;
     }
 
     const { source, target } = event.operation;
 
     if (!source || !target) {
-      setLocalTasksByColumn(null);
       return;
     }
 
     /*
-     * dnd-kit IDs:
-     *
-     * source = task:<taskId>
-     * target = column:<columnId>
-     * OR
-     * target = task:<taskId>
+     * Make sure the dragged item is a sortable task.
      */
-    const sourceId = String(source.id);
-    const targetId = String(target.id);
-
-    if (!sourceId.startsWith("task:")) {
+    if (!isSortable(source)) {
       return;
     }
 
-    const taskId = sourceId.replace("task:", "");
+    const taskId = String(source.id);
 
+    /*
+     * Original column.
+     */
+    const sourceColumnId = String(source.initialGroup);
+
+    /*
+     * Destination comes from the actual
+     * droppable target.
+     */
+    const targetId = String(target.id);
+
+    /*
+     * Our TaskColumn uses:
+     *
+     * column:<columnId>
+     */
+    if (!targetId.startsWith("column:")) {
+      return;
+    }
+
+    const targetColumnId = targetId.replace("column:", "");
+
+    /*
+     * Position reported by dnd-kit.
+     */
+    const position = source.index;
+
+    /*
+     * Find the task.
+     */
     const task = findTask(taskId);
 
     if (!task) {
       return;
     }
 
-    const targetColumnId = resolveTargetColumn(targetId);
-
-    if (!targetColumnId) {
-      return;
-    }
-
-    const sourceColumnId = task.columnId;
-
     /*
-     * Determine target position.
+     * Make sure the position is valid.
      */
-    const targetTasks = tasksByColumn[targetColumnId] ?? [];
-
-    let position = targetTasks.length;
-
-    /*
-     * If dropping on another task,
-     * insert at that task's position.
-     */
-    if (targetId.startsWith("task:")) {
-      const targetTaskId = targetId.replace("task:", "");
-
-      const targetIndex = targetTasks.findIndex((item) => item.id === targetTaskId);
-
-      if (targetIndex !== -1) {
-        position = targetIndex;
-      }
-    }
-
-    /*
-     * If dropping inside the same column,
-     * account for the dragged task being removed.
-     */
-    if (sourceColumnId === targetColumnId) {
-      const sourceIndex = targetTasks.findIndex((item) => item.id === taskId);
-
-      if (sourceIndex !== -1 && sourceIndex < position) {
-        position -= 1;
-      }
-    }
-
-    /*
-     * Prevent unnecessary API calls.
-     */
-    if (sourceColumnId === targetColumnId && targetId === sourceId) {
+    if (position == null || position < 0) {
       return;
     }
 
     /*
-     * Optimistically update UI.
+     * If nothing changed, don't send a request.
      */
-    moveTaskLocally(
+    if (sourceColumnId === targetColumnId && source.initialIndex === position) {
+      return;
+    }
+
+    console.log("MOVING TASK:", {
       taskId,
+      sourceColumnId,
       targetColumnId,
-      targetId.startsWith("task:") ? targetId.replace("task:", "") : undefined,
-    );
+      position,
+    });
 
-    /*
-     * Persist movement to backend.
-     */
-    moveTaskMutation.mutate(
-      {
-        taskId,
-        columnId: sourceColumnId,
-        targetColumnId,
-        position,
-      },
-      {
-        onSuccess: () => {
-          /*
-           * useMoveTask invalidates the relevant queries.
-           *
-           * Once React Query receives the new server state,
-           * we return control to serverTasks.
-           */
-          setLocalTasksByColumn(null);
-        },
-
-        onError: () => {
-          /*
-           * Roll back optimistic state.
-           */
-          setLocalTasksByColumn(null);
-        },
-      },
-    );
+    moveTaskMutation.mutate({
+      taskId,
+      columnId: sourceColumnId,
+      targetColumnId,
+      position,
+    });
   };
 
   if (isColumnsLoading) {
@@ -351,6 +184,7 @@ export function TaskBoard() {
         </div>
       </DragDropProvider>
 
+      {/* Edit task */}
       {selectedTask && (
         <EditTaskDialog
           organizationId={organizationId}
@@ -366,6 +200,7 @@ export function TaskBoard() {
         />
       )}
 
+      {/* Delete task */}
       {deleteTask && (
         <DeleteTaskDialog
           organizationId={organizationId}
@@ -381,6 +216,7 @@ export function TaskBoard() {
         />
       )}
 
+      {/* Assign task */}
       {assignTask && (
         <AssignTaskDialog
           organizationId={organizationId}
