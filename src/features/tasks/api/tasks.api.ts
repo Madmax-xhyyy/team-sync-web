@@ -85,3 +85,21 @@ export async function unassignTask(
 
   return response.data.data;
 }
+
+export async function moveTask(
+  organizationId: string,
+  projectId: string,
+  columnId: string,
+  taskId: string,
+  data: {
+    targetColumnId: string;
+    position: number;
+  },
+): Promise<Task> {
+  const response = await api.patch(
+    `/organizations/${organizationId}/projects/${projectId}/columns/${columnId}/tasks/${taskId}/move`,
+    data,
+  );
+
+  return response.data.data;
+}

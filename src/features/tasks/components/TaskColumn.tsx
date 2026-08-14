@@ -1,77 +1,64 @@
-import { useState } from "react";
-
+import { useDroppable } from "@dnd-kit/react";
 import { Plus } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
-import { useTasks } from "../hooks/useTasks";
 import type { Task } from "../types/task.types";
 
-import { AssignTaskDialog } from "./AssignTaskDialog";
 import { CreateTaskDialog } from "./CreateTaskDialog";
-import { DeleteTaskDialog } from "./DeleteTaskDialog";
-import { EditTaskDialog } from "./EditTaskDialog";
 import { TaskCard } from "./TaskCard";
 
 interface TaskColumnProps {
   organizationId: string;
   projectId: string;
+
   column: {
     id: string;
     name: string;
   };
+
+  tasks: Task[];
+
+  isLoading: boolean;
+
+  onEditTask: (task: Task) => void;
+  onDeleteTask: (task: Task) => void;
+  onAssignTask: (task: Task) => void;
 }
 
-export function TaskColumn({ organizationId, projectId, column }: TaskColumnProps) {
+export function TaskColumn({
+  organizationId,
+  projectId,
+  column,
+  tasks,
+  isLoading,
+  onEditTask,
+  onDeleteTask,
+  onAssignTask,
+}: TaskColumnProps) {
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
 
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-
-  const [assignTaskOpen, setAssignTaskOpen] = useState(false);
-
-  const [deleteTaskOpen, setDeleteTaskOpen] = useState(false);
-
-  const { data: tasks = [], isLoading, isError } = useTasks(organizationId, projectId, column.id);
-
-  const handleEdit = (task: Task) => {
-    setSelectedTask(task);
-  };
-
-  const handleAssign = (task: Task) => {
-    setSelectedTask(task);
-    setAssignTaskOpen(true);
-  };
-
-  const handleDelete = (task: Task) => {
-    setSelectedTask(task);
-    setDeleteTaskOpen(true);
-  };
-
-  const handleEditDialogChange = (open: boolean) => {
-    if (!open) {
-      setSelectedTask(null);
-    }
-  };
-
-  const handleAssignDialogChange = (open: boolean) => {
-    setAssignTaskOpen(open);
-
-    if (!open) {
-      setSelectedTask(null);
-    }
-  };
-
-  const handleDeleteDialogChange = (open: boolean) => {
-    setDeleteTaskOpen(open);
-
-    if (!open) {
-      setSelectedTask(null);
-    }
-  };
+  /*
+   * Register the column as a droppable target.
+   *
+   * TaskBoard expects IDs in this format:
+   *
+   * column:<columnId>
+   */
+  const { ref: columnRef, isDropTarget } = useDroppable({
+    id: `column:${column.id}`,
+  });
 
   return (
     <>
-      <div className="min-h-64 rounded-xl border bg-muted/30">
+      <div
+        ref={columnRef}
+        className={[
+          "min-h-64 rounded-xl border bg-muted/30 transition-colors",
+          isDropTarget ? "border-primary bg-primary/10" : "",
+        ].join(" ")}
+      >
         {/* Column header */}
         <div className="flex items-center justify-between border-b p-4">
           <div className="flex items-center gap-2">
@@ -93,35 +80,38 @@ export function TaskColumn({ organizationId, projectId, column }: TaskColumnProp
         </div>
 
         {/* Tasks */}
-        <div className="space-y-3 p-4">
+        <div className="min-h-32 space-y-3 p-4">
           {isLoading && (
             <>
               <div className="h-20 animate-pulse rounded-lg bg-muted" />
+
               <div className="h-20 animate-pulse rounded-lg bg-muted" />
             </>
           )}
 
-          {isError && <p className="text-sm text-destructive">Failed to load tasks.</p>}
+          {!isLoading && tasks.length === 0 && (
+            <div className="rounded-lg border border-dashed p-6 text-center">
+              <p className="text-sm text-muted-foreground">No tasks yet.</p>
 
-          {!isLoading && !isError && tasks.length === 0 && (
-            <p className="text-sm text-muted-foreground">No tasks yet.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Drop a task here to move it to this column.
+              </p>
+            </div>
           )}
 
           {!isLoading &&
-            !isError &&
             tasks.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
-                onEdit={handleEdit}
-                onAssign={handleAssign}
-                onDelete={handleDelete}
+                onEdit={() => onEditTask(task)}
+                onDelete={() => onDeleteTask(task)}
+                onAssign={() => onAssignTask(task)}
               />
             ))}
         </div>
       </div>
 
-      {/* Create */}
       <CreateTaskDialog
         organizationId={organizationId}
         projectId={projectId}
@@ -130,42 +120,6 @@ export function TaskColumn({ organizationId, projectId, column }: TaskColumnProp
         open={createTaskOpen}
         onOpenChange={setCreateTaskOpen}
       />
-
-      {/* Edit */}
-      {selectedTask && (
-        <EditTaskDialog
-          organizationId={organizationId}
-          projectId={projectId}
-          columnId={column.id}
-          task={selectedTask}
-          open={!assignTaskOpen && !deleteTaskOpen && Boolean(selectedTask)}
-          onOpenChange={handleEditDialogChange}
-        />
-      )}
-
-      {/* Assign */}
-      {selectedTask && (
-        <AssignTaskDialog
-          organizationId={organizationId}
-          projectId={projectId}
-          columnId={column.id}
-          task={selectedTask}
-          open={assignTaskOpen}
-          onOpenChange={handleAssignDialogChange}
-        />
-      )}
-
-      {/* Delete */}
-      {selectedTask && (
-        <DeleteTaskDialog
-          organizationId={organizationId}
-          projectId={projectId}
-          columnId={column.id}
-          task={selectedTask}
-          open={deleteTaskOpen}
-          onOpenChange={handleDeleteDialogChange}
-        />
-      )}
     </>
   );
 }
