@@ -1,6 +1,6 @@
-import { useDroppable } from "@dnd-kit/react";
+import { useEffect, useRef, useState } from "react";
+import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { Plus } from "lucide-react";
-import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -38,20 +38,57 @@ export function TaskColumn({
   onAssignTask,
 }: TaskColumnProps) {
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const [isDraggedOver, setIsDraggedOver] = useState(false);
 
-  const { ref: columnRef, isDropTarget } = useDroppable({
-    id: `column:${column.id}`,
-  });
+  const columnRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const element = columnRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    return dropTargetForElements({
+      element,
+
+      getData: () => ({
+        type: "column",
+        columnId: column.id,
+      }),
+
+      canDrop: ({ source }) => {
+        const data = source.data as {
+          type?: string;
+        };
+
+        return data.type === "task";
+      },
+
+      onDragEnter: () => {
+        setIsDraggedOver(true);
+      },
+
+      onDragLeave: () => {
+        setIsDraggedOver(false);
+      },
+
+      onDrop: () => {
+        setIsDraggedOver(false);
+      },
+    });
+  }, [column.id]);
 
   return (
     <>
       <div
         className={[
-          "min-h-64 rounded-xl border bg-muted/30 transition-colors",
-          isDropTarget ? "border-primary bg-primary/10" : "",
+          "flex min-h-64 flex-col rounded-xl border bg-muted/30",
+          "transition-all duration-150",
+          isDraggedOver ? "border-primary bg-primary/10 ring-2 ring-primary/20" : "",
         ].join(" ")}
       >
-        {/* Column header */}
+        {/* Header */}
         <div className="flex items-center justify-between border-b p-4">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold">{column.name}</h3>
@@ -71,8 +108,15 @@ export function TaskColumn({
           </Button>
         </div>
 
-        {/* Sortable task area */}
-        <div ref={columnRef} className="min-h-32 space-y-3 p-4">
+        {/* Drop area */}
+        <div
+          ref={columnRef}
+          className={[
+            "relative flex-1 space-y-3 p-4",
+            "min-h-40",
+            isDraggedOver ? "bg-primary/5" : "",
+          ].join(" ")}
+        >
           {isLoading && (
             <>
               <div className="h-20 animate-pulse rounded-lg bg-muted" />
@@ -81,12 +125,19 @@ export function TaskColumn({
           )}
 
           {!isLoading && tasks.length === 0 && (
-            <div className="rounded-lg border border-dashed p-6 text-center">
-              <p className="text-sm text-muted-foreground">No tasks yet.</p>
+            <div
+              className={[
+                "flex min-h-32 items-center justify-center rounded-lg",
+                "border border-dashed",
+                "transition-colors",
+                isDraggedOver ? "border-primary bg-primary/10" : "",
+              ].join(" ")}
+            >
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">No tasks yet.</p>
 
-              <p className="mt-1 text-xs text-muted-foreground">
-                Drop a task here to move it to this column.
-              </p>
+                <p className="mt-1 text-xs text-muted-foreground">Drop a task here.</p>
+              </div>
             </div>
           )}
 

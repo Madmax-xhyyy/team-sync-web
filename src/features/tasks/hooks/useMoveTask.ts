@@ -1,127 +1,299 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { moveTask } from "../api/tasks.api";
+
 import type { Task } from "../types/task.types";
 
 interface MoveTaskVariables {
-  taskId: string;
-  columnId: string;
+  task: Task;
+  sourceColumnId: string;
   targetColumnId: string;
   position: number;
 }
 
-type TasksByColumn = Record<string, Task[]>;
-
 interface MoveTaskContext {
-  previousData?: TasksByColumn;
+  previousSourceTasks?: Task[];
+  previousTargetTasks?: Task[];
+  sourceKey: readonly unknown[];
+  targetKey: readonly unknown[];
 }
 
 export function useMoveTask(organizationId: string, projectId: string) {
   const queryClient = useQueryClient();
 
-  const boardTasksKey = ["board-tasks", organizationId, projectId];
-
-  return useMutation<Task, Error, MoveTaskVariables, MoveTaskContext>({
-    mutationFn: ({ taskId, columnId, targetColumnId, position }) =>
-      moveTask(organizationId, projectId, columnId, taskId, {
+  return useMutation({
+    /*
+     * --------------------------------------------------
+     * API REQUEST
+     * --------------------------------------------------
+     */
+    mutationFn: ({ task, sourceColumnId, targetColumnId, position }: MoveTaskVariables) =>
+      moveTask(organizationId, projectId, sourceColumnId, task.id, {
         targetColumnId,
         position,
       }),
 
-    onMutate: async (variables) => {
+    /*
+     * --------------------------------------------------
+     * OPTIMISTIC UPDATE
+     * --------------------------------------------------
+     *
+     * Update the board immediately instead of waiting
+     * for the backend response.
+     */
+    onMutate: async ({
+      task,
+      sourceColumnId,
+      targetColumnId,
+      position,
+    }): Promise<MoveTaskContext> => {
+      const sourceKey = ["board-tasks", organizationId, projectId, sourceColumnId];
+
+      const targetKey = ["board-tasks", organizationId, projectId, targetColumnId];
+
+      /*
+       * Stop any currently running task queries.
+       *
+       * This prevents an old response from overwriting
+       * our optimistic update.
+       */
       await queryClient.cancelQueries({
-        queryKey: boardTasksKey,
+        queryKey: ["board-tasks", organizationId, projectId],
       });
 
-      const previousData = queryClient.getQueryData<TasksByColumn>(boardTasksKey);
+      /*
+       * Save the current state so we can restore it
+       * if the API request fails.
+       */
+      const previousSourceTasks = queryClient.getQueryData<Task[]>(sourceKey);
 
-      if (!previousData) {
-        return {};
+      const previousTargetTasks = queryClient.getQueryData<Task[]>(targetKey);
+
+      /*
+       * --------------------------------------------------
+       * SAME COLUMN
+       * --------------------------------------------------
+       *
+       * Example:
+       *
+       * Todo:
+       *   A
+       *   B
+       *   C
+       *
+       * Move C -> top
+       *
+       * Result:
+       *   C
+       *   A
+       *   B
+       */
+      if (sourceColumnId === targetColumnId) {
+        if (!previousSourceTasks) {
+          return {
+            previousSourceTasks,
+            previousTargetTasks,
+            sourceKey,
+            targetKey,
+          };
+        }
+
+        const newTasks = [...previousSourceTasks];
+
+        const currentIndex = newTasks.findIndex((currentTask) => currentTask.id === task.id);
+
+        if (currentIndex === -1) {
+          return {
+            previousSourceTasks,
+            previousTargetTasks,
+            sourceKey,
+            targetKey,
+          };
+        }
+
+        /*
+         * Remove the task from its current position.
+         */
+        const [movedTask] = newTasks.splice(currentIndex, 1);
+
+        /*
+         * Insert it into the requested position.
+         */
+        newTasks.splice(position, 0, {
+          ...movedTask,
+          columnId: targetColumnId,
+          position,
+        });
+
+        /*
+         * Recalculate positions for every task.
+         */
+        const updatedTasks = newTasks.map((currentTask, index) => ({
+          ...currentTask,
+          position: index,
+        }));
+
+        /*
+         * IMPORTANT:
+         *
+         * sourceKey and targetKey are the same key here.
+         *
+         * Therefore we only update it once.
+         */
+        queryClient.setQueryData<Task[]>(sourceKey, updatedTasks);
+
+        return {
+          previousSourceTasks,
+          previousTargetTasks,
+          sourceKey,
+          targetKey,
+        };
       }
 
       /*
-       * IMPORTANT:
+       * --------------------------------------------------
+       * DIFFERENT COLUMN
+       * --------------------------------------------------
        *
-       * Wait until dnd-kit has finished its DOM cleanup.
+       * Example:
        *
-       * Updating the React Query cache immediately can cause React
-       * to move/remove the same DOM node that dnd-kit is currently
-       * manipulating.
+       * Todo:
+       *   A
+       *   B
+       *
+       * In Progress:
+       *   C
+       *   D
+       *
+       * Move A -> In Progress
+       *
+       * Result:
+       *
+       * Todo:
+       *   B
+       *
+       * In Progress:
+       *   C
+       *   A
+       *   D
        */
-      requestAnimationFrame(() => {
-        queryClient.setQueryData<TasksByColumn>(boardTasksKey, (currentData) => {
-          if (!currentData) {
-            return currentData;
-          }
+      if (!previousSourceTasks || !previousTargetTasks) {
+        return {
+          previousSourceTasks,
+          previousTargetTasks,
+          sourceKey,
+          targetKey,
+        };
+      }
 
-          const sourceTasks = [...(currentData[variables.columnId] ?? [])];
+      /*
+       * Remove the task from the source column.
+       */
+      const newSourceTasks = previousSourceTasks.filter(
+        (currentTask) => currentTask.id !== task.id,
+      );
 
-          const sourceIndex = sourceTasks.findIndex((task) => task.id === variables.taskId);
+      /*
+       * Remove the task from the target column too.
+       *
+       * This protects against accidental duplicate rendering
+       * if the cache already contains the task.
+       */
+      const newTargetTasks = previousTargetTasks.filter(
+        (currentTask) => currentTask.id !== task.id,
+      );
 
-          if (sourceIndex === -1) {
-            return currentData;
-          }
+      /*
+       * Create the optimistic version of the task.
+       */
+      const movedTask: Task = {
+        ...task,
+        columnId: targetColumnId,
+        position,
+      };
 
-          const [movedTask] = sourceTasks.splice(sourceIndex, 1);
+      /*
+       * Insert the task into the requested position.
+       */
+      newTargetTasks.splice(position, 0, movedTask);
 
-          if (!movedTask) {
-            return currentData;
-          }
+      /*
+       * Recalculate positions in both columns.
+       */
+      const updatedSourceTasks = newSourceTasks.map((currentTask, index) => ({
+        ...currentTask,
+        position: index,
+      }));
 
-          const targetTasks =
-            variables.columnId === variables.targetColumnId
-              ? sourceTasks
-              : [...(currentData[variables.targetColumnId] ?? [])];
+      const updatedTargetTasks = newTargetTasks.map((currentTask, index) => ({
+        ...currentTask,
+        position: index,
+      }));
 
-          /*
-           * Clamp the position so we never insert outside
-           * the valid array range.
-           */
-          const position = Math.max(0, Math.min(variables.position, targetTasks.length));
+      /*
+       * Update both columns immediately.
+       */
+      queryClient.setQueryData<Task[]>(sourceKey, updatedSourceTasks);
 
-          targetTasks.splice(position, 0, {
-            ...movedTask,
-            columnId: variables.targetColumnId,
-          });
-
-          const normalize = (tasks: Task[]): Task[] =>
-            tasks.map((task, index) => ({
-              ...task,
-              position: index,
-            }));
-
-          return {
-            ...currentData,
-
-            [variables.columnId]: normalize(sourceTasks),
-
-            [variables.targetColumnId]: normalize(targetTasks),
-          };
-        });
-      });
+      queryClient.setQueryData<Task[]>(targetKey, updatedTargetTasks);
 
       return {
-        previousData,
+        previousSourceTasks,
+        previousTargetTasks,
+        sourceKey,
+        targetKey,
       };
     },
 
+    /*
+     * --------------------------------------------------
+     * ROLLBACK
+     * --------------------------------------------------
+     *
+     * If the backend rejects the move, restore the
+     * previous frontend state.
+     */
     onError: (_error, _variables, context) => {
-      if (!context?.previousData) {
+      if (!context) {
         return;
       }
 
+      queryClient.setQueryData(context.sourceKey, context.previousSourceTasks);
+
       /*
-       * Also wait one frame before restoring the previous DOM state.
+       * Don't restore the target twice when both keys
+       * point to the same column.
        */
-      requestAnimationFrame(() => {
-        queryClient.setQueryData(boardTasksKey, context.previousData);
-      });
+      if (context.sourceKey !== context.targetKey) {
+        queryClient.setQueryData(context.targetKey, context.previousTargetTasks);
+      }
     },
 
-    onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: boardTasksKey,
+    /*
+     * --------------------------------------------------
+     * RE-SYNC WITH BACKEND
+     * --------------------------------------------------
+     *
+     * Even though the UI moves immediately, we still
+     * invalidate the affected columns after the request.
+     *
+     * This guarantees that the frontend eventually
+     * matches the backend.
+     */
+    onSettled: (_data, _error, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["board-tasks", organizationId, projectId, variables.sourceColumnId],
       });
+
+      /*
+       * If the task moved between columns, refresh the
+       * destination column as well.
+       */
+      if (variables.sourceColumnId !== variables.targetColumnId) {
+        queryClient.invalidateQueries({
+          queryKey: ["board-tasks", organizationId, projectId, variables.targetColumnId],
+        });
+      }
     },
   });
 }
