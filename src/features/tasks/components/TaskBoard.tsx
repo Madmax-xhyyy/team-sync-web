@@ -145,11 +145,6 @@ export function TaskBoard() {
           if (sourceColumnId === targetColumnId) {
             position = Math.max(0, destinationTasks.length - 1);
           }
-
-          console.log("📦 COLUMN DROP", {
-            targetColumnId,
-            position,
-          });
         }
 
         /*
@@ -164,7 +159,6 @@ export function TaskBoard() {
             typeof destinationData.index !== "number" ||
             !Number.isInteger(destinationData.index)
           ) {
-            console.log("❌ Invalid destination index");
             return;
           }
 
@@ -178,13 +172,6 @@ export function TaskBoard() {
            * Use extractClosestEdge().
            */
           const edge = extractClosestEdge(destination.data);
-
-          console.log("🎯 TASK DROP", {
-            targetTaskId: destinationData.taskId,
-            targetColumnId,
-            targetIndex: destinationData.index,
-            edge,
-          });
 
           position = destinationData.index;
 
@@ -205,38 +192,6 @@ export function TaskBoard() {
             position -= 1;
           }
         }
-
-        /*
-         * Safety.
-         */
-        if (!Number.isInteger(position) || position < 0) {
-          console.log("❌ Invalid final position", {
-            position,
-          });
-
-          return;
-        }
-
-        /*
-         * No movement.
-         */
-        if (sourceColumnId === targetColumnId && sourceIndex === position) {
-          console.log("ℹ️ No movement required");
-
-          return;
-        }
-
-        console.log("🚀 MOVE TASK", {
-          taskId,
-          sourceColumnId,
-          targetColumnId,
-          sourceIndex,
-          position,
-        });
-
-        /*
-         * Let Pragmatic D&D finish its DOM cleanup first.
-         */
 
         moveTaskMutation.mutate({
           task,

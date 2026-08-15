@@ -18,6 +18,9 @@ interface TaskCardProps {
   index: number;
   columnId: string;
 
+  isLastTask: boolean;
+  isInColumnBottomArea: boolean;
+
   onEdit: () => void;
   onDelete: () => void;
   onAssign: () => void;
@@ -41,10 +44,20 @@ export type TaskDropData = {
   index: number;
 };
 
-export function TaskCard({ task, index, columnId, onEdit, onDelete, onAssign }: TaskCardProps) {
+export function TaskCard({
+  task,
+  index,
+  columnId,
+  isLastTask,
+  isInColumnBottomArea,
+  onEdit,
+  onDelete,
+  onAssign,
+}: TaskCardProps) {
   const cardRef = useRef<HTMLDivElement | null>(null);
 
   const [isDragging, setIsDragging] = useState(false);
+
   const [dropEdge, setDropEdge] = useState<"top" | "bottom" | null>(null);
 
   useEffect(() => {
@@ -76,6 +89,7 @@ export function TaskCard({ task, index, columnId, onEdit, onDelete, onAssign }: 
 
       onDrop: () => {
         setIsDragging(false);
+        setDropEdge(null);
       },
     });
 
@@ -110,11 +124,15 @@ export function TaskCard({ task, index, columnId, onEdit, onDelete, onAssign }: 
       },
 
       onDragEnter: ({ self }) => {
-        setDropEdge(extractClosestEdge(self.data) as "top" | "bottom" | null);
+        const edge = extractClosestEdge(self.data) as "top" | "bottom" | null;
+
+        setDropEdge(edge);
       },
 
       onDrag: ({ self }) => {
-        setDropEdge(extractClosestEdge(self.data) as "top" | "bottom" | null);
+        const edge = extractClosestEdge(self.data) as "top" | "bottom" | null;
+
+        setDropEdge(edge);
       },
 
       onDragLeave: () => {
@@ -132,11 +150,27 @@ export function TaskCard({ task, index, columnId, onEdit, onDelete, onAssign }: 
     };
   }, [task.id, columnId, index]);
 
+  /*
+   * ==================================================
+   * BOTTOM INDICATOR
+   * ==================================================
+   *
+   * Normal behavior:
+   *
+   *   dropEdge === "bottom"
+   *
+   * Additional behavior:
+   *
+   *   last task + pointer below the task
+   *
+   * This is still the SAME TaskCard indicator.
+   */
+
+  const shouldShowBottomIndicator = dropEdge === "bottom" || (isLastTask && isInColumnBottomArea);
+
   return (
-    <div ref={cardRef} className="relative">
-      {/* ================================================
-          TOP INSERTION INDICATOR
-          ================================================ */}
+    <div ref={cardRef} data-task-card className="relative">
+      {/* Top insertion indicator */}
 
       {dropEdge === "top" && (
         <div className="pointer-events-none absolute -top-2 left-0 right-0 z-20">
@@ -144,9 +178,7 @@ export function TaskCard({ task, index, columnId, onEdit, onDelete, onAssign }: 
         </div>
       )}
 
-      {/* ================================================
-          TASK CARD
-          ================================================ */}
+      {/* Task card */}
 
       <div
         className={[
@@ -160,16 +192,13 @@ export function TaskCard({ task, index, columnId, onEdit, onDelete, onAssign }: 
         ].join(" ")}
       >
         {/* Header */}
+
         <div className="flex items-start justify-between gap-3">
           <h4 className="font-medium">{task.title}</h4>
 
           <div
             className="flex items-center gap-1"
             onPointerDown={(event) => {
-              /*
-               * Don't start dragging when clicking
-               * the action buttons.
-               */
               event.stopPropagation();
             }}
           >
@@ -209,11 +238,13 @@ export function TaskCard({ task, index, columnId, onEdit, onDelete, onAssign }: 
         </div>
 
         {/* Description */}
+
         {task.description && (
           <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{task.description}</p>
         )}
 
         {/* Metadata */}
+
         <div className="mt-3 flex items-center justify-between">
           <span className="rounded-md bg-muted px-2 py-1 text-xs">{task.priority}</span>
 
@@ -221,11 +252,9 @@ export function TaskCard({ task, index, columnId, onEdit, onDelete, onAssign }: 
         </div>
       </div>
 
-      {/* ================================================
-          BOTTOM INSERTION INDICATOR
-          ================================================ */}
+      {/* Bottom insertion indicator */}
 
-      {dropEdge === "bottom" && (
+      {shouldShowBottomIndicator && (
         <div className="pointer-events-none absolute -bottom-2 left-0 right-0 z-20">
           <div className="h-1 rounded-full bg-primary shadow-sm" />
         </div>

@@ -40,6 +40,12 @@ export function TaskColumn({
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const [isDraggedOver, setIsDraggedOver] = useState(false);
 
+  /*
+   * This state belongs to the column, but the visual
+   * indicator is still rendered by TaskCard.
+   */
+  const [isInColumnBottomArea, setIsInColumnBottomArea] = useState(false);
+
   const columnRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -69,15 +75,49 @@ export function TaskColumn({
         setIsDraggedOver(true);
       },
 
+      onDrag: ({ location }) => {
+        if (tasks.length === 0) {
+          setIsInColumnBottomArea(false);
+          return;
+        }
+
+        /*
+         * Find all TaskCard elements.
+         *
+         * TaskCard exposes its outer element using
+         * [data-task-card].
+         */
+        const taskElements = Array.from(element.querySelectorAll<HTMLElement>("[data-task-card]"));
+
+        const lastTask = taskElements[taskElements.length - 1];
+
+        if (!lastTask) {
+          setIsInColumnBottomArea(false);
+          return;
+        }
+
+        const lastTaskRect = lastTask.getBoundingClientRect();
+
+        const pointerY = location.current.input.clientY;
+
+        /*
+         * The pointer is considered to be in the
+         * bottom area once it is below the last task.
+         */
+        setIsInColumnBottomArea(pointerY > lastTaskRect.bottom);
+      },
+
       onDragLeave: () => {
         setIsDraggedOver(false);
+        setIsInColumnBottomArea(false);
       },
 
       onDrop: () => {
         setIsDraggedOver(false);
+        setIsInColumnBottomArea(false);
       },
     });
-  }, [column.id]);
+  }, [column.id, tasks.length]);
 
   return (
     <>
@@ -112,8 +152,7 @@ export function TaskColumn({
         <div
           ref={columnRef}
           className={[
-            "relative flex-1 space-y-3 p-4",
-            "min-h-40",
+            "relative flex-1 min-h-40 space-y-3 p-4",
             isDraggedOver ? "bg-primary/5" : "",
           ].join(" ")}
         >
@@ -127,9 +166,8 @@ export function TaskColumn({
           {!isLoading && tasks.length === 0 && (
             <div
               className={[
-                "flex min-h-32 items-center justify-center rounded-lg",
-                "border border-dashed",
-                "transition-colors",
+                "flex min-h-32 items-center justify-center",
+                "rounded-lg border border-dashed",
                 isDraggedOver ? "border-primary bg-primary/10" : "",
               ].join(" ")}
             >
@@ -148,6 +186,8 @@ export function TaskColumn({
                 task={task}
                 index={index}
                 columnId={column.id}
+                isLastTask={index === tasks.length - 1}
+                isInColumnBottomArea={index === tasks.length - 1 && isInColumnBottomArea}
                 onEdit={() => onEditTask(task)}
                 onDelete={() => onDeleteTask(task)}
                 onAssign={() => onAssignTask(task)}
