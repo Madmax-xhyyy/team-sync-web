@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { Plus } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import type { OrganizationMember } from "@/features/organizations/types/member.types";
 
 import type { Task } from "../types/task.types";
 
-import { CreateTaskDialog } from "./CreateTaskDialog";
 import { TaskCard } from "./TaskCard";
 
 interface TaskColumnProps {
@@ -20,6 +18,8 @@ interface TaskColumnProps {
 
   tasks: Task[];
 
+  members: OrganizationMember[];
+
   isLoading: boolean;
 
   onEditTask: (task: Task) => void;
@@ -32,12 +32,12 @@ export function TaskColumn({
   projectId,
   column,
   tasks,
+  members,
   isLoading,
   onEditTask,
   onDeleteTask,
   onAssignTask,
 }: TaskColumnProps) {
-  const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const [isDraggedOver, setIsDraggedOver] = useState(false);
 
   /*
@@ -174,6 +174,7 @@ export function TaskColumn({
                 key={task.id}
                 task={task}
                 index={index}
+                members={members}
                 columnId={column.id}
                 isLastTask={index === tasks.length - 1}
                 isInColumnBottomArea={index === tasks.length - 1 && isInColumnBottomArea}
@@ -184,15 +185,6 @@ export function TaskColumn({
             ))}
         </div>
       </div>
-
-      <CreateTaskDialog
-        organizationId={organizationId}
-        projectId={projectId}
-        columnId={column.id}
-        columnName={column.name}
-        open={createTaskOpen}
-        onOpenChange={setCreateTaskOpen}
-      />
     </>
   );
 }

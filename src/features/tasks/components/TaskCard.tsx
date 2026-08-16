@@ -7,9 +7,11 @@ import {
   attachClosestEdge,
   extractClosestEdge,
 } from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
-import { Pencil, Trash2, UserPlus } from "lucide-react";
+import { CalendarDays, Pencil, Trash2, UserPlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+
+import type { OrganizationMember } from "@/features/organizations/types/member.types";
 
 import type { Task } from "../types/task.types";
 
@@ -17,6 +19,7 @@ interface TaskCardProps {
   task: Task;
   index: number;
   columnId: string;
+  members: OrganizationMember[];
 
   isLastTask: boolean;
   isInColumnBottomArea: boolean;
@@ -48,6 +51,7 @@ export function TaskCard({
   task,
   index,
   columnId,
+  members,
   isLastTask,
   isInColumnBottomArea,
   onEdit,
@@ -57,8 +61,39 @@ export function TaskCard({
   const cardRef = useRef<HTMLDivElement | null>(null);
 
   const [isDragging, setIsDragging] = useState(false);
-
   const [dropEdge, setDropEdge] = useState<"top" | "bottom" | null>(null);
+
+  /*
+   * ==================================================
+   * ASSIGNEE
+   * ==================================================
+   */
+
+  const assignee = task.assigneeId
+    ? members.find((member) => member.userId === task.assigneeId)
+    : undefined;
+
+  /*
+   * ==================================================
+   * DUE DATE
+   * ==================================================
+   */
+
+  const isOverdue = task.dueDate !== null && new Date(task.dueDate).getTime() < Date.now();
+
+  const formattedDueDate = task.dueDate
+    ? new Date(task.dueDate).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : null;
+
+  /*
+   * ==================================================
+   * DRAG AND DROP
+   * ==================================================
+   */
 
   useEffect(() => {
     const element = cardRef.current;
@@ -154,19 +189,15 @@ export function TaskCard({
    * ==================================================
    * BOTTOM INDICATOR
    * ==================================================
-   *
-   * Normal behavior:
-   *
-   *   dropEdge === "bottom"
-   *
-   * Additional behavior:
-   *
-   *   last task + pointer below the task
-   *
-   * This is still the SAME TaskCard indicator.
    */
 
   const shouldShowBottomIndicator = dropEdge === "bottom" || (isLastTask && isInColumnBottomArea);
+
+  /*
+   * ==================================================
+   * RENDER
+   * ==================================================
+   */
 
   return (
     <div ref={cardRef} data-task-card className="relative">
@@ -185,19 +216,17 @@ export function TaskCard({
           "rounded-lg border bg-background p-4 shadow-sm",
           "cursor-grab active:cursor-grabbing",
           "transition-opacity duration-150",
-
           isDragging ? "scale-[0.98] opacity-40" : "opacity-100",
-
           dropEdge ? "border-primary/50" : "",
         ].join(" ")}
       >
         {/* Header */}
 
         <div className="flex items-start justify-between gap-3">
-          <h4 className="font-medium">{task.title}</h4>
+          <h4 className="min-w-0 font-medium">{task.title}</h4>
 
           <div
-            className="flex items-center gap-1"
+            className="flex shrink-0 items-center gap-1"
             onPointerDown={(event) => {
               event.stopPropagation();
             }}
@@ -243,13 +272,69 @@ export function TaskCard({
           <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{task.description}</p>
         )}
 
-        {/* Metadata */}
+        {/* Priority + Type */}
 
-        <div className="mt-3 flex items-center justify-between">
-          <span className="rounded-md bg-muted px-2 py-1 text-xs">{task.priority}</span>
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <span className="rounded-md bg-muted px-2 py-1 text-xs font-medium">{task.priority}</span>
 
           <span className="text-xs text-muted-foreground">{task.type}</span>
         </div>
+
+        {/* Assignee + Due Date */}
+
+        <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">
+          {/* Assignee */}
+
+          <div className="flex min-w-0 items-center gap-2">
+            {assignee ? (
+              <>
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                  {assignee.firstName.charAt(0)}
+                  {assignee.lastName.charAt(0)}
+                </div>
+
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-medium">
+                    {assignee.firstName} {assignee.lastName}
+                  </p>
+
+                  <p className="text-[11px] text-muted-foreground">Assignee</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs text-muted-foreground">
+                  ?
+                </div>
+
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">Unassigned</p>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Due date */}
+
+          {formattedDueDate && (
+            <div
+              className={[
+                "flex shrink-0 items-center gap-1 text-xs",
+                isOverdue ? "font-medium text-destructive" : "text-muted-foreground",
+              ].join(" ")}
+            >
+              <CalendarDays className="h-3.5 w-3.5" />
+
+              <span>{isOverdue ? "Overdue" : formattedDueDate}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Overdue date */}
+
+        {isOverdue && formattedDueDate && (
+          <p className="mt-1 text-right text-[11px] text-destructive">Due {formattedDueDate}</p>
+        )}
       </div>
 
       {/* Bottom insertion indicator */}

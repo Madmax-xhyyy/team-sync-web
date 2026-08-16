@@ -7,6 +7,8 @@ import { extractClosestEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/clo
 
 import { Button } from "@/components/ui/button";
 
+import { useOrganizationMembers } from "@/features/organizations/hooks/useOrganizationMembers";
+
 import { useTaskColumns } from "../hooks/useTaskColumns";
 import { useBoardTasks } from "../hooks/useBoardTasks";
 import { useMoveTask } from "../hooks/useMoveTask";
@@ -48,6 +50,9 @@ export function TaskBoard() {
     isLoading: isTasksLoading,
     isError: isTasksError,
   } = useBoardTasks(organizationId, projectId, columns);
+
+  const { data: members = [], isLoading: isMembersLoading } =
+    useOrganizationMembers(organizationId);
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [deleteTask, setDeleteTask] = useState<Task | null>(null);
@@ -263,6 +268,7 @@ export function TaskBoard() {
             projectId={projectId}
             column={column}
             tasks={tasksByColumn[column.id] ?? []}
+            members={members}
             isLoading={isTasksLoading}
             onEditTask={setSelectedTask}
             onDeleteTask={setDeleteTask}
