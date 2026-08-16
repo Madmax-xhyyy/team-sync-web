@@ -11,7 +11,7 @@ export function useCreateTask(organizationId: string, projectId: string, columnI
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["tasks", organizationId, projectId, columnId],
+        queryKey: ["board-tasks", organizationId, projectId, columnId],
       });
     },
   });

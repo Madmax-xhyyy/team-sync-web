@@ -153,6 +153,10 @@ export function CreateTaskDialog({
                 <option value="BUG">Bug</option>
 
                 <option value="FEATURE">Feature</option>
+
+                <option value="CHORE">Chore</option>
+
+                <option value="REFACTOR">Refactor</option>
               </select>
 
               {form.formState.errors.type && (

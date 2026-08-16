@@ -1,6 +1,6 @@
 export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
-export type TaskType = "TASK" | "BUG" | "FEATURE";
+export type TaskType = "TASK" | "BUG" | "FEATURE" | "CHORE" | "REFACTOR";
 
 export interface Task {
   id: string;

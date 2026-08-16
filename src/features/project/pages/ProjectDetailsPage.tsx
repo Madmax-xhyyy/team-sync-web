@@ -62,12 +62,6 @@ export function ProjectDetailsPage() {
       </section>
 
       <section className="rounded-xl border p-6">
-        <div className="mb-6">
-          <h2 className="font-semibold">Task Board</h2>
-
-          <p className="mt-1 text-sm text-muted-foreground">Manage tasks for this project.</p>
-        </div>
-
         <TaskBoard />
       </section>
     </div>

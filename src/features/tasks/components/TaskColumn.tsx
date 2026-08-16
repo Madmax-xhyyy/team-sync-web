@@ -135,17 +135,6 @@ export function TaskColumn({
 
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{tasks.length}</span>
           </div>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => setCreateTaskOpen(true)}
-            aria-label={`Add task to ${column.name}`}
-            title={`Add task to ${column.name}`}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
         </div>
 
         {/* Drop area */}

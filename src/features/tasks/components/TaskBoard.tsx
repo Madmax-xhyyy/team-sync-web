@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Plus } from "lucide-react";
+
 import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { extractClosestEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
+
+import { Button } from "@/components/ui/button";
 
 import { useTaskColumns } from "../hooks/useTaskColumns";
 import { useBoardTasks } from "../hooks/useBoardTasks";
@@ -10,6 +14,7 @@ import { useMoveTask } from "../hooks/useMoveTask";
 import type { Task } from "../types/task.types";
 
 import { TaskColumn } from "./TaskColumn";
+import { CreateTaskDialog } from "./CreateTaskDialog";
 import { EditTaskDialog } from "./EditTaskDialog";
 import { DeleteTaskDialog } from "./DeleteTaskDialog";
 import { AssignTaskDialog } from "./AssignTaskDialog";
@@ -26,13 +31,6 @@ interface DropData {
   columnId: string;
   taskId?: string;
   index?: number;
-
-  /*
-   * Provided by the Pragmatic D&D hitbox.
-   *
-   * "top"    = insert before target
-   * "bottom" = insert after target
-   */
   edge?: "top" | "bottom" | null;
 }
 
@@ -55,11 +53,30 @@ export function TaskBoard() {
   const [deleteTask, setDeleteTask] = useState<Task | null>(null);
   const [assignTask, setAssignTask] = useState<Task | null>(null);
 
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
+
   const moveTaskMutation = useMoveTask(organizationId, projectId);
 
   /*
-   * Flatten all tasks so we can find a task by ID.
+   * --------------------------------------------------
+   * TODO COLUMN
+   * --------------------------------------------------
+   *
+   * New tasks are always created in Todo.
+   *
+   * We identify the column by name instead of assuming
+   * a specific column ID.
    */
+  const todoColumn = useMemo(() => {
+    return columns.find((column) => column.name.toLowerCase() === "todo");
+  }, [columns]);
+
+  /*
+   * --------------------------------------------------
+   * FIND TASK
+   * --------------------------------------------------
+   */
+
   const allTasks = useMemo(() => Object.values(tasksByColumn).flat(), [tasksByColumn]);
 
   const findTask = useCallback(
@@ -68,6 +85,12 @@ export function TaskBoard() {
     },
     [allTasks],
   );
+
+  /*
+   * --------------------------------------------------
+   * DRAG AND DROP
+   * --------------------------------------------------
+   */
 
   useEffect(() => {
     return monitorForElements({
@@ -118,39 +141,27 @@ export function TaskBoard() {
         let position: number;
 
         /*
-         * =====================================================
+         * --------------------------------------------------
          * DROP ON COLUMN
-         * =====================================================
-         *
-         * This handles:
-         *
-         * - empty columns
-         * - empty space
-         * - below the last task
+         * --------------------------------------------------
          */
+
         if (destinationData.type === "column") {
           targetColumnId = destinationData.columnId;
 
           const destinationTasks = tasksByColumn[targetColumnId] ?? [];
 
-          /*
-           * Insert at the end.
-           */
           position = destinationTasks.length;
 
-          /*
-           * If reordering inside the same column,
-           * the dragged task is already included in length.
-           */
           if (sourceColumnId === targetColumnId) {
             position = Math.max(0, destinationTasks.length - 1);
           }
         }
 
         /*
-         * =====================================================
+         * --------------------------------------------------
          * DROP ON TASK
-         * =====================================================
+         * --------------------------------------------------
          */
         else {
           targetColumnId = destinationData.columnId;
@@ -162,32 +173,14 @@ export function TaskBoard() {
             return;
           }
 
-          /*
-           * IMPORTANT:
-           *
-           * Do NOT use:
-           *
-           * destination.data.edge
-           *
-           * Use extractClosestEdge().
-           */
           const edge = extractClosestEdge(destination.data);
 
           position = destinationData.index;
 
-          /*
-           * Dropping on the bottom half means:
-           *
-           * insert AFTER the target task.
-           */
           if (edge === "bottom") {
             position += 1;
           }
 
-          /*
-           * If moving within the same column, removing the
-           * source task shifts the insertion index.
-           */
           if (sourceColumnId === targetColumnId && sourceIndex < position) {
             position -= 1;
           }
@@ -204,9 +197,9 @@ export function TaskBoard() {
   }, [findTask, tasksByColumn, moveTaskMutation]);
 
   /*
-   * ======================================================
-   * Loading / Error states
-   * ======================================================
+   * --------------------------------------------------
+   * LOADING
+   * --------------------------------------------------
    */
 
   if (isColumnsLoading) {
@@ -218,6 +211,12 @@ export function TaskBoard() {
       </div>
     );
   }
+
+  /*
+   * --------------------------------------------------
+   * ERRORS
+   * --------------------------------------------------
+   */
 
   if (isColumnsError) {
     return (
@@ -234,13 +233,28 @@ export function TaskBoard() {
   }
 
   /*
-   * ======================================================
-   * Board
-   * ======================================================
+   * --------------------------------------------------
+   * BOARD
+   * --------------------------------------------------
    */
 
   return (
     <>
+      {/* Board header */}
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold">Tasks</h2>
+
+          <p className="text-sm text-muted-foreground">Manage and organize your project tasks.</p>
+        </div>
+
+        <Button type="button" onClick={() => setCreateTaskOpen(true)} disabled={!todoColumn}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Task
+        </Button>
+      </div>
+
+      {/* Board */}
       <div className="grid gap-4 md:grid-cols-3">
         {columns.map((column) => (
           <TaskColumn
@@ -257,6 +271,19 @@ export function TaskBoard() {
         ))}
       </div>
 
+      {/* Create Task */}
+      {todoColumn && (
+        <CreateTaskDialog
+          organizationId={organizationId}
+          projectId={projectId}
+          columnId={todoColumn.id}
+          columnName={todoColumn.name}
+          open={createTaskOpen}
+          onOpenChange={setCreateTaskOpen}
+        />
+      )}
+
+      {/* Edit Task */}
       {selectedTask && (
         <EditTaskDialog
           organizationId={organizationId}
@@ -272,6 +299,7 @@ export function TaskBoard() {
         />
       )}
 
+      {/* Delete Task */}
       {deleteTask && (
         <DeleteTaskDialog
           organizationId={organizationId}
@@ -287,6 +315,7 @@ export function TaskBoard() {
         />
       )}
 
+      {/* Assign Task */}
       {assignTask && (
         <AssignTaskDialog
           organizationId={organizationId}
