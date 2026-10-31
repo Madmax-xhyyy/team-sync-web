@@ -14,7 +14,7 @@ export function useUpdateOrganization(organizationId: string) {
       });
 
       await queryClient.invalidateQueries({
-        queryKey: ["my-organizations"],
+        queryKey: ["organizations", "my"],
       });
     },
   });
