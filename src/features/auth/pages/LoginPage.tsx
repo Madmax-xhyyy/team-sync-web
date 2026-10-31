@@ -1,22 +1,28 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 import { login } from "@/features/auth/api/auth.api";
 import { loginSchema, type LoginFormData } from "@/features/auth/schemas/auth.schemas";
 import { useAuthStore } from "@/stores/auth.store";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const registeredEmail =
+    typeof location.state?.registeredEmail === "string" ? location.state.registeredEmail : "";
 
   const {
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      email: registeredEmail,
       password: "",
     },
   });
@@ -24,26 +30,33 @@ export function LoginPage() {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
   const onSubmit = async (data: LoginFormData) => {
+    clearErrors("root");
     try {
       const response = await login(data);
 
       setAccessToken(response.data.accessToken);
       navigate("/dashboard", { replace: true });
-
-      console.log("Login successful.");
     } catch (error) {
-      console.error("Login failed:", error);
+      setError("root.server", {
+        message: getApiErrorMessage(error, "Unable to sign in. Please try again."),
+      });
     }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="w-full max-w-md space-y-6">
         <div>
           <h1 className="text-2xl font-semibold">Sign in</h1>
 
           <p className="text-muted-foreground">Sign in to your TeamSync account.</p>
         </div>
+
+        {registeredEmail && (
+          <p role="status" className="rounded-md border bg-muted p-3 text-sm">
+            Your account has been created. Sign in to get started.
+          </p>
+        )}
 
         <div className="space-y-2">
           <label htmlFor="email">Email</label>
@@ -73,6 +86,12 @@ export function LoginPage() {
           {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
         </div>
 
+        {errors.root?.server && (
+          <p role="alert" className="text-sm text-destructive">
+            {errors.root.server.message}
+          </p>
+        )}
+
         <button
           type="submit"
           disabled={isSubmitting}
@@ -80,6 +99,16 @@ export function LoginPage() {
         >
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
+
+        <p className="text-center text-sm text-muted-foreground">
+          Don&apos;t have an account?{" "}
+          <Link
+            to="/register"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            Create an account
+          </Link>
+        </p>
       </form>
     </div>
   );

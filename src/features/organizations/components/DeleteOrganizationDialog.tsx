@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import { getApiErrorMessage } from "@/lib/api-error";
 
 import {
@@ -12,8 +10,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-import { Button } from "@/components/ui/button";
 
 import { useDeleteOrganization } from "../hooks/useDeleteOrganization";
 

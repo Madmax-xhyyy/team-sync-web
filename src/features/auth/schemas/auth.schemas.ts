@@ -33,7 +33,7 @@ export const registerSchema = z
     password: z
       .string()
       .min(8, "Password must be at least 8 characters.")
-      .max(128, "Password must be 128 characters or less."),
+      .max(100, "Password must be 100 characters or less."),
 
     confirmPassword: z.string().min(1, "Please confirm your password."),
   })

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   Dialog,
@@ -49,16 +49,6 @@ export function AssignTaskDialog({
   const unassignMutation = useUnassignTask(organizationId, projectId, columnId);
 
   const isPending = assignMutation.isPending || unassignMutation.isPending;
-
-  /**
-   * Synchronize the selected user whenever
-   * the dialog opens for a different task.
-   */
-  useEffect(() => {
-    if (open) {
-      setSelectedUserId(task.assigneeId ?? "");
-    }
-  }, [task.assigneeId, open]);
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (isPending) {

@@ -20,6 +20,7 @@ import { CreateTaskDialog } from "./CreateTaskDialog";
 import { EditTaskDialog } from "./EditTaskDialog";
 import { DeleteTaskDialog } from "./DeleteTaskDialog";
 import { AssignTaskDialog } from "./AssignTaskDialog";
+import { TaskDetailsDialog } from "./TaskDetailsDialog";
 
 interface DragData {
   type: "task";
@@ -51,14 +52,14 @@ export function TaskBoard() {
     isError: isTasksError,
   } = useBoardTasks(organizationId, projectId, columns);
 
-  const { data: members = [], isLoading: isMembersLoading } =
-    useOrganizationMembers(organizationId);
+  const { data: members = [] } = useOrganizationMembers(organizationId);
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [deleteTask, setDeleteTask] = useState<Task | null>(null);
   const [assignTask, setAssignTask] = useState<Task | null>(null);
 
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const [detailsTask, setDetailsTask] = useState<Task | null>(null);
 
   const moveTaskMutation = useMoveTask(organizationId, projectId);
 
@@ -270,6 +271,7 @@ export function TaskBoard() {
             tasks={tasksByColumn[column.id] ?? []}
             members={members}
             isLoading={isTasksLoading}
+            onViewTask={setDetailsTask}
             onEditTask={setSelectedTask}
             onDeleteTask={setDeleteTask}
             onAssignTask={setAssignTask}
@@ -324,6 +326,7 @@ export function TaskBoard() {
       {/* Assign Task */}
       {assignTask && (
         <AssignTaskDialog
+          key={`${assignTask.id}:${assignTask.assigneeId ?? ""}`}
           organizationId={organizationId}
           projectId={projectId}
           columnId={assignTask.columnId}
@@ -332,6 +335,19 @@ export function TaskBoard() {
           onOpenChange={(open) => {
             if (!open) {
               setAssignTask(null);
+            }
+          }}
+        />
+      )}
+
+      {detailsTask && (
+        <TaskDetailsDialog
+          task={detailsTask}
+          members={members}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) {
+              setDetailsTask(null);
             }
           }}
         />

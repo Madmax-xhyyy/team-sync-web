@@ -1,6 +1,7 @@
 import { Navigate, RouteObject } from "react-router-dom";
 import { AppLayout } from "@/app/layouts/AppLayout";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
+import { RegisterPage } from "@/features/auth/pages/RegisterPage";
 import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
 import { OrganizationsPage } from "@/features/organizations/pages/OrganizationsPage";
@@ -20,7 +21,7 @@ export const routes: RouteObject[] = [
 
   {
     path: "/register",
-    element: <div>Register Page</div>,
+    element: <RegisterPage />,
   },
 
   {

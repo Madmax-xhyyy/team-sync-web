@@ -22,18 +22,18 @@ interface TaskColumnProps {
 
   isLoading: boolean;
 
+  onViewTask: (task: Task) => void;
   onEditTask: (task: Task) => void;
   onDeleteTask: (task: Task) => void;
   onAssignTask: (task: Task) => void;
 }
 
 export function TaskColumn({
-  organizationId,
-  projectId,
   column,
   tasks,
   members,
   isLoading,
+  onViewTask,
   onEditTask,
   onDeleteTask,
   onAssignTask,
@@ -178,6 +178,7 @@ export function TaskColumn({
                 columnId={column.id}
                 isLastTask={index === tasks.length - 1}
                 isInColumnBottomArea={index === tasks.length - 1 && isInColumnBottomArea}
+                onViewDetails={() => onViewTask(task)}
                 onEdit={() => onEditTask(task)}
                 onDelete={() => onDeleteTask(task)}
                 onAssign={() => onAssignTask(task)}

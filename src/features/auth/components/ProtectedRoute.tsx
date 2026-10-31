@@ -9,11 +9,6 @@ export function ProtectedRoute() {
 
   const location = useLocation();
 
-  console.log("ProtectedRoute:", {
-    isAuthenticated,
-    isInitializing,
-  });
-
   if (isInitializing) {
     return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
   }

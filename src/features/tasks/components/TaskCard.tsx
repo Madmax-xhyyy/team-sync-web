@@ -10,6 +10,7 @@ import {
 import { CalendarDays, Pencil, Trash2, UserPlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useNow } from "@/hooks/use-now";
 
 import type { OrganizationMember } from "@/features/organizations/types/member.types";
 
@@ -24,6 +25,7 @@ interface TaskCardProps {
   isLastTask: boolean;
   isInColumnBottomArea: boolean;
 
+  onViewDetails: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onAssign: () => void;
@@ -54,6 +56,7 @@ export function TaskCard({
   members,
   isLastTask,
   isInColumnBottomArea,
+  onViewDetails,
   onEdit,
   onDelete,
   onAssign,
@@ -79,7 +82,8 @@ export function TaskCard({
    * ==================================================
    */
 
-  const isOverdue = task.dueDate !== null && new Date(task.dueDate).getTime() < Date.now();
+  const now = useNow();
+  const isOverdue = task.dueDate !== null && new Date(task.dueDate).getTime() < now;
 
   const formattedDueDate = task.dueDate
     ? new Date(task.dueDate).toLocaleDateString(undefined, {
@@ -223,7 +227,22 @@ export function TaskCard({
         {/* Header */}
 
         <div className="flex items-start justify-between gap-3">
-          <h4 className="min-w-0 font-medium">{task.title}</h4>
+          <button
+            type="button"
+            onPointerDown={(event) => {
+              event.stopPropagation();
+            }}
+            onMouseDown={(event) => {
+              event.stopPropagation();
+            }}
+            onClick={(event) => {
+              event.stopPropagation();
+              onViewDetails();
+            }}
+            className="min-w-0 cursor-pointer truncate text-left font-medium hover:text-primary hover:underline"
+          >
+            {task.title}
+          </button>
 
           <div
             className="flex shrink-0 items-center gap-1"
