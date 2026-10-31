@@ -59,12 +59,16 @@ export function RegisterPage() {
   return (
     <main className="flex min-h-svh items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
-        <div className="mb-10 flex items-center gap-2 text-sm font-semibold">
+        <Link
+          to="/"
+          aria-label="TeamSync home"
+          className="mb-10 flex w-fit items-center gap-2 rounded-sm text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        >
           <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <UsersRound className="size-4" aria-hidden="true" />
           </span>
           TeamSync
-        </div>
+        </Link>
 
         <div className="mb-8 space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">Create your account</h1>

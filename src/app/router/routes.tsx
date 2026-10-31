@@ -1,4 +1,4 @@
-import { Navigate, RouteObject } from "react-router-dom";
+import type { RouteObject } from "react-router-dom";
 import { AppLayout } from "@/app/layouts/AppLayout";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { RegisterPage } from "@/features/auth/pages/RegisterPage";
@@ -8,11 +8,12 @@ import { OrganizationsPage } from "@/features/organizations/pages/OrganizationsP
 import { OrganizationDetailsPage } from "@/features/organizations/pages/OrganizationDetailsPage";
 import { ProjectDetailsPage } from "@/features/project/pages/ProjectDetailsPage";
 import { ProfilePage } from "@/features/user/pages/ProfilePage";
+import { HomePage } from "@/features/home/pages/HomePage";
 
 export const routes: RouteObject[] = [
   {
     path: "/",
-    element: <Navigate to="/login" replace />,
+    element: <HomePage />,
   },
 
   {

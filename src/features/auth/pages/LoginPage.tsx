@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { UsersRound } from "lucide-react";
 
 import { login } from "@/features/auth/api/auth.api";
 import { loginSchema, type LoginFormData } from "@/features/auth/schemas/auth.schemas";
@@ -46,6 +47,16 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="w-full max-w-md space-y-6">
+        <Link
+          to="/"
+          aria-label="TeamSync home"
+          className="mb-10 flex w-fit items-center gap-2 rounded-sm text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        >
+          <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <UsersRound className="size-4" aria-hidden="true" />
+          </span>
+          TeamSync
+        </Link>
         <div>
           <h1 className="text-2xl font-semibold">Sign in</h1>
 
