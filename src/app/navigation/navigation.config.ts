@@ -1,4 +1,4 @@
-import { LayoutDashboard, UserRound, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, UsersRound, type LucideIcon } from "lucide-react";
 
 export interface NavigationItem {
   title: string;
@@ -12,12 +12,10 @@ export const navigationItems: NavigationItem[] = [
     url: "",
     icon: LayoutDashboard,
   },
-];
 
-export const secondaryNavigationItems: NavigationItem[] = [
   {
-    title: "Profile",
-    url: "/profile",
-    icon: UserRound,
+    title: "Team",
+    url: "/team",
+    icon: UsersRound,
   },
 ];

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { UserPlus } from "lucide-react";
 import { useParams } from "react-router-dom";
 
 import { getApiErrorMessage } from "@/lib/api-error";
@@ -78,8 +79,8 @@ export function AddMemberDialog({ currentRole }: AddMemberDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
-        Add Member
+      <DialogTrigger className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+        <UserPlus className="size-4" aria-hidden="true" /> Add member
       </DialogTrigger>
 
       <DialogContent>

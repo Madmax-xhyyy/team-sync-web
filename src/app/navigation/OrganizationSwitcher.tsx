@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, Layers } from "lucide-react";
+import { Building2, Check, ChevronsUpDown, Layers } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
 import {
@@ -8,6 +8,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSidebar } from "@/components/ui/sidebar-context";
@@ -78,6 +79,15 @@ export function OrganizationSwitcher() {
             <DropdownMenuItem disabled>No organizations available</DropdownMenuItem>
           )}
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          render={<Link to="/organizations" />}
+          onClick={() => setOpenMobile(false)}
+          className="cursor-pointer gap-3 px-2 py-2.5"
+        >
+          <Building2 aria-hidden="true" />
+          All organizations
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

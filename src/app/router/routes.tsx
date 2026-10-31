@@ -8,6 +8,7 @@ import { OrganizationDetailsPage } from "@/features/organizations/pages/Organiza
 import { ProjectDetailsPage } from "@/features/project/pages/ProjectDetailsPage";
 import { ProfilePage } from "@/features/user/pages/ProfilePage";
 import { HomePage } from "@/features/home/pages/HomePage";
+import { TeamPage } from "@/features/organizations/pages/TeamPage";
 
 export const routes: RouteObject[] = [
   {
@@ -42,6 +43,10 @@ export const routes: RouteObject[] = [
           {
             path: "/organizations/:organizationId",
             element: <OrganizationDetailsPage />,
+          },
+          {
+            path: "/organizations/:organizationId/team",
+            element: <TeamPage />,
           },
           {
             path: "organizations/:organizationId/projects/:projectId",

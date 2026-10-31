@@ -6,7 +6,6 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -19,7 +18,7 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
-import { navigationItems, secondaryNavigationItems } from "./navigation.config";
+import { navigationItems } from "./navigation.config";
 import { useSidebarProjects } from "./useSidebarProjects";
 import { OrganizationSwitcher } from "./OrganizationSwitcher";
 
@@ -156,31 +155,6 @@ export function AppSidebar() {
           </SidebarGroup>
         </nav>
       </SidebarContent>
-
-      <SidebarFooter className="border-t border-sidebar-border p-3">
-        <nav aria-label="Account navigation">
-          <SidebarMenu>
-            {secondaryNavigationItems.map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton
-                    render={<Link to={item.url} />}
-                    isActive={isActive(item.url)}
-                    aria-current={isActive(item.url) ? "page" : undefined}
-                    onClick={closeMobile}
-                    className="h-10"
-                  >
-                    <Icon aria-hidden="true" />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
-          </SidebarMenu>
-        </nav>
-      </SidebarFooter>
     </Sidebar>
   );
 }
