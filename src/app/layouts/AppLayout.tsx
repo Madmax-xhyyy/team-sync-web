@@ -1,49 +1,52 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useParams } from "react-router-dom";
 
 import { AccountMenu } from "@/app/navigation/AccountMenu";
+import { AppSidebar } from "@/app/navigation/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 export function AppLayout() {
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="flex h-16 items-center justify-between gap-2 px-4 sm:px-6">
-          <Link to="/dashboard" className="text-lg font-semibold">
+  const { organizationId } = useParams();
+  const header = (
+    <header className="border-b bg-background">
+      <div className="flex h-16 items-center justify-between gap-2 px-4 sm:px-6">
+        <div className="flex items-center gap-3">
+          {organizationId && <SidebarTrigger />}
+          <Link
+            to="/organizations"
+            className="rounded-sm text-sm font-semibold focus-visible:outline-2 focus-visible:outline-ring"
+          >
             TeamSync
           </Link>
-
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <AccountMenu />
-          </div>
         </div>
-      </header>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <AccountMenu />
+        </div>
+      </div>
+    </header>
+  );
 
-      <div className="flex">
-        <aside className="hidden w-64 border-r md:block">
-          <nav className="space-y-1 p-4">
-            <Link to="/dashboard" className="block rounded-md px-3 py-2 hover:bg-muted">
-              Dashboard
-            </Link>
-
-            <Link to="/organizations" className="block rounded-md px-3 py-2 hover:bg-muted">
-              Organizations
-            </Link>
-
-            <Link to="/projects" className="block rounded-md px-3 py-2 hover:bg-muted">
-              Projects
-            </Link>
-
-            <Link to="/tasks" className="block rounded-md px-3 py-2 hover:bg-muted">
-              Tasks
-            </Link>
-          </nav>
-        </aside>
-
-        <main className="min-w-0 flex-1 p-4 sm:p-6">
+  if (!organizationId) {
+    return (
+      <div className="min-h-screen bg-background">
+        {header}
+        <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">
           <Outlet />
         </main>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <SidebarProvider>
+      <AppSidebar key={organizationId} />
+      <SidebarInset className="min-w-0">
+        {header}
+        <div className="min-w-0 flex-1 p-4 sm:p-6">
+          <Outlet />
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

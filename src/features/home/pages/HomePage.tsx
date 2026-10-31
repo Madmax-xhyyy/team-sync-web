@@ -52,7 +52,7 @@ const textLinkClassName =
 
 export function HomePage() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const startUrl = isAuthenticated ? "/dashboard" : "/register";
+  const startUrl = isAuthenticated ? "/organizations" : "/register";
   const startLabel = isAuthenticated ? "Open workspace" : "Get started";
 
   return (
@@ -256,7 +256,7 @@ export function HomePage() {
             <a href="#features" className={textLinkClassName}>
               Explore
             </a>
-            <Link to={isAuthenticated ? "/dashboard" : "/login"} className={textLinkClassName}>
+            <Link to={isAuthenticated ? "/organizations" : "/login"} className={textLinkClassName}>
               {isAuthenticated ? "Workspace" : "Sign in"}
             </Link>
             <span>© {new Date().getFullYear()} TeamSync</span>

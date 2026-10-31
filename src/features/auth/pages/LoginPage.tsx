@@ -37,7 +37,7 @@ export function LoginPage() {
       const response = await login(data);
 
       setAccessToken(response.data.accessToken);
-      navigate("/dashboard", { replace: true });
+      navigate("/organizations", { replace: true });
     } catch (error) {
       setError("root.server", {
         message: getApiErrorMessage(error, "Unable to sign in. Please try again."),

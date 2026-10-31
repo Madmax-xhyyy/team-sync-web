@@ -1,9 +1,8 @@
-import type { RouteObject } from "react-router-dom";
+import { Navigate, type RouteObject } from "react-router-dom";
 import { AppLayout } from "@/app/layouts/AppLayout";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { RegisterPage } from "@/features/auth/pages/RegisterPage";
 import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
-import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
 import { OrganizationsPage } from "@/features/organizations/pages/OrganizationsPage";
 import { OrganizationDetailsPage } from "@/features/organizations/pages/OrganizationDetailsPage";
 import { ProjectDetailsPage } from "@/features/project/pages/ProjectDetailsPage";
@@ -34,7 +33,7 @@ export const routes: RouteObject[] = [
         children: [
           {
             path: "/dashboard",
-            element: <DashboardPage />,
+            element: <Navigate to="/organizations" replace />,
           },
           {
             path: "/organizations",

@@ -1,11 +1,4 @@
-import {
-  LayoutDashboard,
-  Building2,
-  FolderKanban,
-  CheckSquare,
-  Settings,
-  type LucideIcon,
-} from "lucide-react";
+import { LayoutDashboard, UserRound, type LucideIcon } from "lucide-react";
 
 export interface NavigationItem {
   title: string;
@@ -15,31 +8,16 @@ export interface NavigationItem {
 
 export const navigationItems: NavigationItem[] = [
   {
-    title: "Dashboard",
-    url: "/dashboard",
+    title: "Overview",
+    url: "",
     icon: LayoutDashboard,
-  },
-  {
-    title: "Organizations",
-    url: "/organizations",
-    icon: Building2,
-  },
-  {
-    title: "Projects",
-    url: "/projects",
-    icon: FolderKanban,
-  },
-  {
-    title: "Tasks",
-    url: "/tasks",
-    icon: CheckSquare,
   },
 ];
 
 export const secondaryNavigationItems: NavigationItem[] = [
   {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
+    title: "Profile",
+    url: "/profile",
+    icon: UserRound,
   },
 ];
