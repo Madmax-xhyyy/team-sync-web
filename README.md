@@ -1,4 +1,31 @@
-# React + TypeScript + Vite
+# TeamSync
+
+## Customizing the theme
+
+Edit **`src/styles/theme.css`** to customize the app's appearance. The `:root`
+block defines light colors; `:root.dark` defines dark colors. The same file owns
+the font, border radius, chart colors, status colors, and workspace preview shadow.
+
+Components use semantic Tailwind utilities such as `bg-background`, `bg-card`,
+`text-foreground`, `text-muted-foreground`, and `border-border`. Use these tokens
+for new UI instead of hardcoded colors or separate light/dark color classes.
+Change both a background token and its matching foreground token together, and
+check text contrast in both themes.
+
+The appearance menu offers **Light**, **Dark**, and **System**. System is the
+default and follows live OS changes. Explicit preferences persist under the
+`teamsync-theme` localStorage key and synchronize across tabs. Choosing System
+removes that override. Themes still work for the current tab when storage is
+blocked. The preference belongs to the browser, so it survives logout.
+
+An early script in `index.html` applies the theme before rendering to prevent a
+wrong-theme flash. Keep its storage key and media query aligned with
+`src/lib/theme.ts`. Browser controls use the matching `color-scheme`, and the
+browser's theme color is read from the CSS background token.
+
+Run theme behavior checks with `npm run test:theme` (Node 22.18+).
+
+## React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

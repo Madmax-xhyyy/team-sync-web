@@ -7,6 +7,7 @@ import { login } from "@/features/auth/api/auth.api";
 import { loginSchema, type LoginFormData } from "@/features/auth/schemas/auth.schemas";
 import { useAuthStore } from "@/stores/auth.store";
 import { getApiErrorMessage } from "@/lib/api-error";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -46,6 +47,9 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
+      <div className="fixed top-4 right-4 z-10">
+        <ThemeToggle />
+      </div>
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="w-full max-w-md space-y-6">
         <Link
           to="/"

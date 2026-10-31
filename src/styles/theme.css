@@ -1,0 +1,148 @@
+/*
+ * TeamSync's theme lives here. Customize the light palette in :root and the
+ * dark palette in :root.dark. Components use semantic utilities (bg-card,
+ * text-muted-foreground, etc.) rather than their own color values.
+ */
+:root {
+  color-scheme: light;
+  --font-body: "Geist Variable", sans-serif;
+  --radius: 0.625rem;
+
+  --background: #f8f9fe;
+  --foreground: #202137;
+  --card: #ffffff;
+  --card-foreground: #202137;
+  --popover: #ffffff;
+  --popover-foreground: #202137;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --secondary: #eef0ff;
+  --secondary-foreground: #3730a3;
+  --muted: #f2f3f9;
+  --muted-foreground: #62657a;
+  --accent: #e7eafe;
+  --accent-foreground: #3730a3;
+  --destructive: #b83232;
+  --border: #e0e4f0;
+  --input: #bcc3db;
+  --ring: #6366f1;
+
+  --brand: #5850d6;
+  --surface: #edeefe;
+  --success: #2c6e41;
+  --success-muted: #deeadf;
+  --warning: #80571e;
+  --warning-muted: #f2e7db;
+  --info: #6c587c;
+  --info-muted: #e8e4f0;
+  --selection: #dfe3ff;
+  --selection-foreground: #312e81;
+  --overlay: rgb(0 0 0 / 20%);
+  --preview-shadow: 0 16px 48px -24px rgb(49 46 129 / 20%);
+
+  /* Shared aliases keep charts and sidebar consistent with the palette. */
+  --chart-1: var(--primary);
+  --chart-2: var(--brand);
+  --chart-3: var(--success);
+  --chart-4: var(--warning);
+  --chart-5: var(--info);
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
+:root.dark {
+  color-scheme: dark;
+  --background: #11111b;
+  --foreground: #e9e9f4;
+  --card: #191925;
+  --card-foreground: #e9e9f4;
+  --popover: #20202f;
+  --popover-foreground: #e9e9f4;
+  --primary: #aaa7ff;
+  --primary-foreground: #1d1940;
+  --secondary: #24243a;
+  --secondary-foreground: #dedbff;
+  --muted: #222231;
+  --muted-foreground: #afafc4;
+  --accent: #2c2b48;
+  --accent-foreground: #edeaff;
+  --destructive: #f28b82;
+  --border: #35354c;
+  --input: #50506e;
+  --ring: #a5a2ff;
+
+  --brand: #b0aaff;
+  --surface: #202035;
+  --success: #97c9a0;
+  --success-muted: #243a2a;
+  --warning: #e4bd80;
+  --warning-muted: #3b3022;
+  --info: #c2addb;
+  --info-muted: #322a3d;
+  --selection: #3c3766;
+  --selection-foreground: #f2f0ff;
+  --overlay: rgb(0 0 0 / 65%);
+  --preview-shadow: 0 16px 48px -24px rgb(0 0 0 / 45%);
+}
+
+/* Expose tokens as Tailwind utilities; no palette changes are needed below. */
+@theme inline {
+  --font-heading: var(--font-body);
+  --font-sans: var(--font-body);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-surface: var(--surface);
+  --color-success: var(--success);
+  --color-success-muted: var(--success-muted);
+  --color-warning: var(--warning);
+  --color-warning-muted: var(--warning-muted);
+  --color-info: var(--info);
+  --color-info-muted: var(--info-muted);
+  --color-selection: var(--selection);
+  --color-selection-foreground: var(--selection-foreground);
+  --color-overlay: var(--overlay);
+  --shadow-workspace: var(--preview-shadow);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}

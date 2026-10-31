@@ -8,7 +8,25 @@
       name="description"
       content="Bring your people, projects, and tasks into one shared workspace. TeamSync helps your team stay organized and move work forward, together."
     />
-    <meta name="theme-color" content="#fafbf8" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" />
+    <script id="theme-init">
+      // Apply before the app and stylesheet load to avoid a wrong-theme flash.
+      (() => {
+        let preference = "system";
+        try {
+          const stored = localStorage.getItem("teamsync-theme");
+          if (stored === "light" || stored === "dark") preference = stored;
+        } catch {
+          // Browser storage may be disabled; fall back to the system theme.
+        }
+        const dark =
+          preference === "dark" ||
+          (preference === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+        document.documentElement.style.colorScheme = dark ? "dark" : "light";
+      })();
+    </script>
     <title>TeamSync — Your team. On the same page.</title>
   </head>
   <body>

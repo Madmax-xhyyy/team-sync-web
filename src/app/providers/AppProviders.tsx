@@ -1,11 +1,16 @@
 import { ReactNode } from "react";
 
 import { QueryProvider } from "./QueryProvider";
+import { ThemeProvider } from "./ThemeProvider";
 
 interface AppProvidersProps {
   children: ReactNode;
 }
 
 export function AppProviders({ children }: AppProvidersProps) {
-  return <QueryProvider>{children}</QueryProvider>;
+  return (
+    <ThemeProvider>
+      <QueryProvider>{children}</QueryProvider>
+    </ThemeProvider>
+  );
 }

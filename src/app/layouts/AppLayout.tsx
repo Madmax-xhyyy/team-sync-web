@@ -1,6 +1,7 @@
 import { Link, Outlet } from "react-router-dom";
 
 import { AccountMenu } from "@/app/navigation/AccountMenu";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function AppLayout() {
   return (
@@ -11,7 +12,10 @@ export function AppLayout() {
             TeamSync
           </Link>
 
-          <AccountMenu />
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <AccountMenu />
+          </div>
         </div>
       </header>
 
