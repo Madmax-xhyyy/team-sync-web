@@ -1,39 +1,17 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet } from "react-router-dom";
 
-import { logout } from "@/features/auth/api/auth.api";
-import { useAuthStore } from "@/stores/auth.store";
+import { AccountMenu } from "@/app/navigation/AccountMenu";
 
 export function AppLayout() {
-  const queryClient = useQueryClient();
-  const clearAuth = useAuthStore((state) => state.clearAuth);
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    } finally {
-      queryClient.clear();
-      clearAuth();
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
-        <div className="flex h-16 items-center justify-between px-6">
+        <div className="flex h-16 items-center justify-between gap-2 px-4 sm:px-6">
           <Link to="/dashboard" className="text-lg font-semibold">
             TeamSync
           </Link>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="rounded-md border px-3 py-2 text-sm"
-          >
-            Logout
-          </button>
+          <AccountMenu />
         </div>
       </header>
 
@@ -58,7 +36,7 @@ export function AppLayout() {
           </nav>
         </aside>
 
-        <main className="flex-1 p-6">
+        <main className="min-w-0 flex-1 p-4 sm:p-6">
           <Outlet />
         </main>
       </div>

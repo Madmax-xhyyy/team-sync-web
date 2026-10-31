@@ -7,6 +7,7 @@ import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
 import { OrganizationsPage } from "@/features/organizations/pages/OrganizationsPage";
 import { OrganizationDetailsPage } from "@/features/organizations/pages/OrganizationDetailsPage";
 import { ProjectDetailsPage } from "@/features/project/pages/ProjectDetailsPage";
+import { ProfilePage } from "@/features/user/pages/ProfilePage";
 
 export const routes: RouteObject[] = [
   {
@@ -49,6 +50,10 @@ export const routes: RouteObject[] = [
           {
             path: "/tasks",
             element: <div>Tasks</div>,
+          },
+          {
+            path: "/profile",
+            element: <ProfilePage />,
           },
         ],
       },

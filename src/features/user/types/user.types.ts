@@ -5,3 +5,8 @@ export interface UserProfile {
   email: string;
   role: string;
 }
+
+export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+}
