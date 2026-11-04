@@ -15,6 +15,9 @@ import { useMoveTask } from "../hooks/useMoveTask";
 
 import type { Task } from "../types/task.types";
 
+import { TaskList } from "./TaskList";
+import { getApiErrorMessage } from "@/lib/api-error";
+
 import { TaskColumn } from "./TaskColumn";
 import { CreateTaskDialog } from "./CreateTaskDialog";
 import { EditTaskDialog } from "./EditTaskDialog";
@@ -37,7 +40,7 @@ interface DropData {
   edge?: "top" | "bottom" | null;
 }
 
-export function TaskBoard() {
+export function TaskBoard({ view = "board" }: { view?: "backlog" | "board" | "list" }) {
   const { organizationId = "", projectId = "" } = useParams();
 
   const {
@@ -74,7 +77,11 @@ export function TaskBoard() {
    * a specific column ID.
    */
   const todoColumn = useMemo(() => {
-    return columns.find((column) => column.name.toLowerCase() === "todo");
+    return (
+      columns.find((column) => column.name.trim().toLowerCase() === "backlog") ??
+      columns.find((column) => column.name.toLowerCase().replace(/\s/g, "") === "todo") ??
+      [...columns].sort((a, b) => a.position - b.position)[0]
+    );
   }, [columns]);
 
   /*
@@ -103,7 +110,7 @@ export function TaskBoard() {
       canMonitor: ({ source }) => {
         const data = source.data as Partial<DragData>;
 
-        return data.type === "task";
+        return view === "board" && !moveTaskMutation.isPending && data.type === "task";
       },
 
       onDrop({ source, location }) {
@@ -200,7 +207,7 @@ export function TaskBoard() {
         });
       },
     });
-  }, [findTask, tasksByColumn, moveTaskMutation]);
+  }, [findTask, tasksByColumn, moveTaskMutation, view]);
 
   /*
    * --------------------------------------------------
@@ -247,11 +254,19 @@ export function TaskBoard() {
   return (
     <>
       {/* Board header */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold">Tasks</h2>
+          <h2 className="text-lg font-semibold">
+            {view === "backlog" ? "Backlog" : view === "board" ? "Kanban board" : "Tasks & issues"}
+          </h2>
 
-          <p className="text-sm text-muted-foreground">Manage and organize your project tasks.</p>
+          <p className="text-sm text-muted-foreground">
+            {view === "backlog"
+              ? `Plan new work in ${todoColumn?.name ?? "your starting column"}.`
+              : view === "board"
+                ? "Drag tasks between columns to update their status."
+                : "Every task and issue in your project, in one place."}
+          </p>
         </div>
 
         <Button type="button" onClick={() => setCreateTaskOpen(true)} disabled={!todoColumn}>
@@ -261,23 +276,57 @@ export function TaskBoard() {
       </div>
 
       {/* Board */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {columns.map((column) => (
-          <TaskColumn
-            key={column.id}
-            organizationId={organizationId}
-            projectId={projectId}
-            column={column}
-            tasks={tasksByColumn[column.id] ?? []}
-            members={members}
-            isLoading={isTasksLoading}
-            onViewTask={setDetailsTask}
-            onEditTask={setSelectedTask}
-            onDeleteTask={setDeleteTask}
-            onAssignTask={setAssignTask}
-          />
-        ))}
-      </div>
+      {moveTaskMutation.isError && (
+        <p role="alert" className="mb-4 rounded-lg border p-3 text-sm text-destructive">
+          {getApiErrorMessage(moveTaskMutation.error, "Couldn’t move task. Please try again.")}
+        </p>
+      )}
+      {columns.length === 0 && (
+        <p className="mb-4 rounded-lg border p-6 text-sm text-muted-foreground">
+          This project has no task columns yet. A task column is needed before adding tasks.
+        </p>
+      )}
+      {view !== "board" ? (
+        <TaskList
+          key={view}
+          tasks={view === "backlog" ? (tasksByColumn[todoColumn?.id ?? ""] ?? []) : allTasks}
+          columns={columns}
+          members={members}
+          loading={isTasksLoading}
+          moving={moveTaskMutation.isPending}
+          onView={setDetailsTask}
+          onEdit={setSelectedTask}
+          onAssign={setAssignTask}
+          onDelete={setDeleteTask}
+          onMove={(task, targetColumnId) => {
+            if (task.columnId !== targetColumnId)
+              moveTaskMutation.mutate({
+                task,
+                sourceColumnId: task.columnId,
+                targetColumnId,
+                position: (tasksByColumn[targetColumnId] ?? []).length,
+              });
+          }}
+        />
+      ) : (
+        <div className="flex gap-4 overflow-x-auto pb-4 [&>div]:w-80 [&>div]:shrink-0">
+          {columns.map((column) => (
+            <TaskColumn
+              key={column.id}
+              organizationId={organizationId}
+              projectId={projectId}
+              column={column}
+              tasks={tasksByColumn[column.id] ?? []}
+              members={members}
+              isLoading={isTasksLoading}
+              onViewTask={setDetailsTask}
+              onEditTask={setSelectedTask}
+              onDeleteTask={setDeleteTask}
+              onAssignTask={setAssignTask}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Create Task */}
       {todoColumn && (

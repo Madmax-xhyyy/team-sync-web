@@ -1,100 +1,235 @@
-# TeamSync
+# TeamSync Web
 
-## Customizing the theme
+TeamSync Web is the frontend application for **TeamSync**, a team collaboration platform that helps organizations coordinate projects, manage work, and collaborate with their members.
 
-Edit **`src/styles/theme.css`** to customize the app's appearance. The `:root`
-block defines light colors; `:root.dark` defines dark colors. The same file owns
-the font, border radius, chart colors, status colors, and workspace preview shadow.
+This repository contains the web client. It is built with React, TypeScript, and Vite, and communicates with the TeamSync REST API.
 
-Components use semantic Tailwind utilities such as `bg-background`, `bg-card`,
-`text-foreground`, `text-muted-foreground`, and `border-border`. Use these tokens
-for new UI instead of hardcoded colors or separate light/dark color classes.
-Change both a background token and its matching foreground token together, and
-check text contrast in both themes.
+- **Live application:** https://teamsync-henna-seven.vercel.app
 
-The appearance menu offers **Light**, **Dark**, and **System**. System is the
-default and follows live OS changes. Explicit preferences persist under the
-`teamsync-theme` localStorage key and synchronize across tabs. Choosing System
-removes that override. Themes still work for the current tab when storage is
-blocked. The preference belongs to the browser, so it survives logout.
+## Tech Stack
 
-An early script in `index.html` applies the theme before rendering to prevent a
-wrong-theme flash. Keep its storage key and media query aligned with
-`src/lib/theme.ts`. Browser controls use the matching `color-scheme`, and the
-browser's theme color is read from the CSS background token.
+### Core
 
-Run theme behavior checks with `npm run test:theme` (Node 22.18+).
+- React 19
+- TypeScript
+- Vite 8
+- React Router DOM 7
 
-## React + TypeScript + Vite
+### UI and Styling
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+- Tailwind CSS 4
+- Base UI
+- shadcn
+- Lucide React
+- Geist variable font
+- `class-variance-authority`, `clsx`, and `tailwind-merge`
 
-Currently, two official plugins are available:
+### Data and State
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- TanStack Query
+- Zustand
+- Axios
 
-## React Compiler
+### Forms and Validation
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React Hook Form
+- Zod
+- `@hookform/resolvers`
 
-## Expanding the ESLint configuration
+### Developer Tools
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- ESLint
+- Prettier
+- TypeScript
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+## Features
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+TeamSync is designed as a centralized collaboration experience for organization and project work. The broader platform scope includes:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+- User authentication and profile management
+- Organization and member management
+- Project management
+- Task management and Kanban workflows
+- Task comments and collaboration
+- Notifications and activity history
+- Dashboards and project reporting
+
+The exact availability of each feature depends on the current implementation and the connected API. Refer to the application routes and source modules for the authoritative list of implemented frontend functionality.
+
+## Architecture
+
+The web client is a Vite-powered single-page application (SPA). It communicates with the backend through REST endpoints using JSON over HTTP/HTTPS.
+
+```text
+Browser
+   |
+   v
+React + TypeScript + Vite
+   |
+   | HTTP/HTTPS (JSON)
+   v
+TeamSync REST API
+   |
+   v
+MongoDB
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The backend is maintained separately. Configure the frontend with the API's base URL using the environment variable expected by the API client in this repository.
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+## Prerequisites
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+- Node.js (use a current LTS release compatible with the installed Vite version)
+- npm
+- Git
+- Access to a running TeamSync API for authenticated and data-backed functionality
+
+The theme test script specifically requires **Node.js 22.18 or newer**.
+
+## Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Madmax-xhyyy/team-sync-web.git
+cd team-sync-web
 ```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure environment variables
+
+Create a `.env` file in the project root and set the backend API URL using the exact variable name read by the API client.
+
+For example, if the source code uses `VITE_API_BASE_URL`:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080/api/v1
+```
+
+> **Important:** `VITE_API_BASE_URL` is an example placeholder, not a confirmed variable name. Check the Axios/API client configuration in `src` and use the variable name defined there. Vite only exposes client-side environment variables prefixed with `VITE_`. Never put private API keys, database credentials, JWT signing secrets, or OAuth client secrets in frontend environment variables.
+
+For local development, make sure the backend is running and allows requests from the frontend origin through its CORS configuration.
+
+### 4. Start the development server
+
+```bash
+npm run dev
+```
+
+Vite prints the local development URL in the terminal (commonly `http://localhost:5173`).
+
+### 5. Create a production build
+
+```bash
+npm run build
+```
+
+This runs the TypeScript project build and creates the optimized static frontend output in `dist/`.
+
+### 6. Preview the production build locally
+
+```bash
+npm run preview
+```
+
+## Available Scripts
+
+| Command                | Description                                                 |
+| ---------------------- | ----------------------------------------------------------- |
+| `npm run dev`          | Start the Vite development server                           |
+| `npm run build`        | Type-check/build the project and generate production assets |
+| `npm run lint`         | Run ESLint                                                  |
+| `npm run preview`      | Preview the production build locally                        |
+| `npm run test:theme`   | Run the theme behavior tests (Node.js 22.18+)               |
+| `npm run format`       | Format files with Prettier                                  |
+| `npm run format:check` | Check formatting without modifying files                    |
+
+## Theme Customization
+
+Theme configuration is centralized in `src/styles/theme.css`.
+
+- `:root` defines the light theme.
+- `:root.dark` defines the dark theme.
+- The theme file also defines typography, border radius, chart colors, status colors, and workspace preview shadow.
+
+Use semantic Tailwind theme utilities in components, such as:
+
+- `bg-background`
+- `bg-card`
+- `text-foreground`
+- `text-muted-foreground`
+- `border-border`
+
+Prefer semantic theme tokens over hardcoded colors so the interface remains consistent across light and dark modes. When changing a background token, verify its matching foreground token and check contrast in both themes.
+
+The appearance setting supports **Light**, **Dark**, and **System** modes. System is the default and follows operating-system theme changes. Explicit preferences are stored in the browser under the `teamsync-theme` localStorage key and synchronized across tabs. Selecting System removes the explicit override. The theme also remains usable in the current tab when browser storage is unavailable.
+
+The early theme initialization script in `index.html` prevents an incorrect-theme flash during page load. Keep its storage key and media query aligned with `src/lib/theme.ts`.
+
+Run the theme behavior tests with:
+
+```bash
+npm run test:theme
+```
+
+## Deployment
+
+The application is configured for deployment as a static frontend. The repository includes a `vercel.json` file, and the live application is hosted on Vercel.
+
+To deploy:
+
+1. Import the Git repository into Vercel.
+2. Select the Vite framework preset (or configure the build settings manually).
+3. Set the build command to `npm run build`.
+4. Set the output directory to `dist`.
+5. Add the required frontend environment variables in the Vercel project settings.
+6. Deploy and verify that the frontend can reach the production TeamSync API.
+
+### SPA Routing
+
+Because this is a single-page application, direct navigation to nested client-side routes must be rewritten to the application entry point. Preserve and verify the repository's `vercel.json` rewrite configuration when changing deployment settings.
+
+### Production Configuration
+
+- Use the HTTPS URL of the deployed API.
+- Configure backend CORS to allow the deployed frontend origin.
+- Do not expose secrets in `VITE_` variables; frontend variables are bundled into client-accessible assets.
+- Verify authentication redirects, protected routes, API error handling, and page refresh behavior on nested routes after deployment.
+
+## Development Guidelines
+
+When adding or changing features:
+
+- Keep components focused and reusable.
+- Keep API communication in the existing API/service layer rather than embedding request logic throughout UI components.
+- Use TanStack Query for server-state fetching, caching, and mutations where the existing architecture does so.
+- Use Zustand for shared client state where appropriate.
+- Validate user input with the existing React Hook Form and Zod patterns.
+- Reuse shared UI components and semantic theme tokens.
+- Keep TypeScript types explicit and avoid unnecessary `any` usage.
+- Handle loading, empty, success, and error states.
+- Ensure protected UI routes are backed by authorization checks in the API; frontend route guards alone do not secure data.
+- Add or update tests when changing behavior.
+
+## Quality Checks
+
+Before submitting changes, run:
+
+```bash
+npm run lint
+npm run format:check
+npm run build
+npm run test:theme
+```
+
+## Related Repository
+
+- **TeamSync API:** The separate Spring Boot backend repository. Configure the frontend API base URL to point to its local or deployed API instance.
+
+## License
+
+No license has been specified for this repository. Add a `LICENSE` file and update this section before distributing the project under an open-source license.
